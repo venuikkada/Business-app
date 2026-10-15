@@ -426,6 +426,7 @@ r.post("notifications/read", "tenant", async (c) => {
 }, { idempotent: false });
 
 // ---------------------------------------------------------------- reports
+r.get("dashboard", "tenant", async (c) => reports.dashboard(c.t, reports.resolveRange(c.t, c.query)));
 r.get("reports/:name", "tenant", async (c) => {
   const def = REPORTS[c.params.name!];
   if (!def) throw new AppError("NOT_FOUND", "Unknown report");

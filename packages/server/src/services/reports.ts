@@ -350,7 +350,7 @@ export async function dashboard(t: Tenant, r: Range) {
       )
     : [];
   const recentDocs = await t.db.query(
-    `select id, doc_type, number, status, party_name, grand_total, issue_date, created_at from documents d
+    `select id, doc_type, number, status, party_id, party_name, grand_total, balance_due, issue_date, created_at from documents d
       where doc_type = any($1) and ${branchCond(t)} order by created_at desc limit 8`,
     [[...(canSales ? ["invoice", "credit_note"] : []), ...(t.can("quotations.view") ? ["quotation"] : []), ...(t.can("purchases.view") ? ["purchase_bill"] : [])]],
   );
