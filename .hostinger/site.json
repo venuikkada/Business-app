@@ -1,0 +1,15 @@
+{
+  "domain": "sienna-swan-881576.hostingersite.com",
+  "username": "u294778060",
+  "type": "nodejs",
+  "build": {
+    "source": "git",
+    "repository": "venuikkada/Business-app",
+    "branch": "ccr-9a0e465a-9pife9",
+    "root_directory": "apps/web",
+    "app_type": "next",
+    "package_manager": "pnpm",
+    "node_version": 20
+  },
+  "database": "Supabase project ipubkblmlwmwsptsmycx (ap-south-1), session pooler"
+}

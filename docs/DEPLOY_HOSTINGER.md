@@ -87,26 +87,60 @@ docker compose restart web admin  # restart apps
 
 Uploaded files live in the `uploads` volume; HTTPS certificates in `caddy_data`.
 
-## Option B — Business/Cloud web hosting + external PostgreSQL
+## Option B — Business/Cloud web hosting + Supabase PostgreSQL (in use)
 
-Only if you already pay for Business/Cloud hosting and don't want a VPS:
+This is how the app is deployed on the existing Business plan:
 
-1. Create a PostgreSQL database in **Neon** or **Supabase** (region: Mumbai). Run
-   migrations and `db:setup-roles` from your computer (see [DEPLOYMENT.md](DEPLOYMENT.md)).
-2. In hPanel → Websites → Add website → Node.js app, connect the GitHub repo.
-   Build command `pnpm install --frozen-lockfile && pnpm --filter @cba/web build`,
-   start command `pnpm --filter @cba/web start`, Node 20.
-3. Add the environment variables from `.env.example` (`DATABASE_URL`,
-   `PLATFORM_DATABASE_URL`, `APP_SECRET`, `APP_URL`, `CRON_SECRET`, `SMTP_URL`, …) in the
-   Node.js app settings. Do **not** use Hostinger's "create database" for this app (MySQL).
-4. Deploy the admin app as a second Node.js website on `admin.` with only
-   `PLATFORM_DATABASE_URL`, `APP_SECRET`, `APP_URL`, `ADMIN_URL`.
-5. Schedule the daily job with an external cron (e.g. cron-job.org) calling
-   `POST https://app.your-domain.in/api/v1/cron/daily` with `Authorization: Bearer <CRON_SECRET>`.
+| Piece | Setting |
+| --- | --- |
+| Website | `sienna-swan-881576.hostingersite.com` (free subdomain; connect your own domain later) |
+| Build | Hostinger Node.js build **from GitHub**: repo `venuikkada/Business-app`, root directory `apps/web`, app type Next.js, package manager **pnpm**, Node 20, build script `build`, output `.next` |
+| Database | Supabase project `crazy-business-app` (Mumbai, ap-south-1), reached through the **Session pooler** (IPv4) on port 5432 |
+| TLS to the database | Verified against the Supabase Root 2021 CA (`DB_SSL_CA_BASE64`) — no `sslmode` in the URLs |
 
-Caveats: uploaded files are stored on the website disk (`STORAGE_LOCAL_DIR`) — make
-sure it persists across deploys or use S3; whether Hostinger's builder handles the
-pnpm workspace has not been verified.
+Database setup that was done (via the Supabase connector):
+- migrations 0001–0006, 0008, 0009 applied with their checksums recorded in
+  `schema_migrations`; schema verified identical to a local database migrated from the
+  files (columns, constraints, indexes, policies, function bodies, triggers, grants)
+- **0007 must be run by you** in Supabase → SQL Editor (the connector could not show
+  its confirmation prompt): paste `db/migrations/0007_jobs_sharing.sql` followed by
+  `insert into schema_migrations(name, checksum) values ('0007_jobs_sharing.sql', '<sha256 of the file>');`
+- default plans and platform settings seeded
+- roles `cba_app` / `cba_platform` can log in (passwords set as SCRAM hashes; no RLS bypass)
+- migration 0009 removes all access for Supabase's Data API roles (`anon`, `authenticated`)
+  and puts row-level security on every table
+
+Environment variables (hPanel → Websites → the site → Node.js → Environment variables):
+
+```
+NODE_ENV=production
+DATABASE_URL=postgres://cba_app.<project-ref>:<password>@<session-pooler-host>:5432/postgres
+PLATFORM_DATABASE_URL=postgres://cba_platform.<project-ref>:<password>@<session-pooler-host>:5432/postgres
+DB_SSL_CA_BASE64=<base64 of prod-ca-2021.crt from Supabase → Database settings → SSL>
+DB_POOL_MAX=5
+APP_SECRET=<openssl rand -hex 32>
+CRON_SECRET=<openssl rand -hex 32>
+APP_URL=https://<your-domain>
+STORAGE_DRIVER=local
+STORAGE_LOCAL_DIR=/home/<hostinger-user>/cba-storage   # outside the deploy folder, survives redeploys
+MAIL_FROM="CRAZY BUSINESS APP <no-reply@your-domain>"
+SMTP_URL=smtps://no-reply%40your-domain:<mailbox-password>@smtp.hostinger.com:465   # optional
+```
+
+The pooler host (`aws-N-ap-south-1.pooler.supabase.com`) must be **copied from Supabase →
+Connect → Session pooler**; the number differs between projects. Custom roles use the
+username form `role.project-ref`.
+
+Redeploy after pushing new code: hPanel → Node.js → Deploy (or the API's start-build with
+the same settings). Run new migrations against Supabase before deploying code that needs them.
+
+Daily jobs: schedule an external cron (e.g. cron-job.org, or hPanel → Advanced → Cron Jobs
+with `curl`) for `POST https://<your-domain>/api/v1/cron/daily` with
+`Authorization: Bearer <CRON_SECRET>` at 00:30 UTC (06:00 IST).
+
+Still to do on this option: the admin panel (`apps/admin`) is **not deployed yet** — deploy it
+as a second Node.js website (root directory `apps/admin`) with only `PLATFORM_DATABASE_URL`,
+`DB_SSL_CA_BASE64`, `APP_SECRET`, `APP_URL`, `ADMIN_URL`.
 
 ## Android app
 
