@@ -1,7 +1,8 @@
 # Deployment (production, India)
 
 > Nothing has been deployed yet. This is the recommended setup; follow
-> [STATUS.md](STATUS.md) "Before launch" too.
+> [STATUS.md](STATUS.md) "Before launch" too. **On Hostinger, use the tested Docker
+> stack in [DEPLOY_HOSTINGER.md](DEPLOY_HOSTINGER.md) instead.**
 
 ## Recommended stack
 

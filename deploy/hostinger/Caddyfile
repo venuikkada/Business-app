@@ -1,0 +1,15 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+	# Caddy replaces X-Forwarded-For with the real client address, which the
+	# app's per-IP rate limits rely on.
+	reverse_proxy web:3000
+}
+
+{$ADMIN_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy admin:3001
+}

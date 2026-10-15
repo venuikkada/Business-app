@@ -1,0 +1,120 @@
+# Production stack for a Hostinger VPS (or any Linux server with Docker).
+#   cp .env.example .env   # fill in, see DEPLOY_HOSTINGER.md
+#   docker compose up -d --build
+# Only Caddy is exposed to the internet (80/443). PostgreSQL and the Node apps
+# listen on the private Docker network.
+name: crazy-business
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cba
+      POSTGRES_USER: cba_owner
+      POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:?set DB_OWNER_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cba_owner -d cba"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # One-shot: applies migrations and sets the app role passwords, then exits.
+  migrate:
+    build: { context: ../.., dockerfile: Dockerfile }
+    image: crazy-business:latest
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      MIGRATION_DATABASE_URL: postgres://cba_owner:${DB_OWNER_PASSWORD}@db:5432/cba
+      CBA_APP_PASSWORD: ${CBA_APP_PASSWORD:?set CBA_APP_PASSWORD}
+      CBA_PLATFORM_PASSWORD: ${CBA_PLATFORM_PASSWORD:?set CBA_PLATFORM_PASSWORD}
+    command: ["sh", "-c", "pnpm db:migrate && pnpm --filter @cba/server db:setup-roles"]
+    restart: "no"
+
+  web:
+    image: crazy-business:latest
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    environment: &appenv
+      NODE_ENV: production
+      DATABASE_URL: postgres://cba_app:${CBA_APP_PASSWORD}@db:5432/cba
+      PLATFORM_DATABASE_URL: postgres://cba_platform:${CBA_PLATFORM_PASSWORD}@db:5432/cba
+      APP_SECRET: ${APP_SECRET:?set APP_SECRET}
+      CRON_SECRET: ${CRON_SECRET:?set CRON_SECRET}
+      APP_URL: https://${APP_DOMAIN:?set APP_DOMAIN}
+      ADMIN_URL: https://${ADMIN_DOMAIN:?set ADMIN_DOMAIN}
+      MAIL_FROM: ${MAIL_FROM:-CRAZY BUSINESS APP <no-reply@localhost>}
+      SMTP_URL: ${SMTP_URL:-}
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_DIR: /data/storage
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+    volumes:
+      - uploads:/data/storage
+    command: ["pnpm", "--filter", "@cba/web", "start"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  admin:
+    image: crazy-business:latest
+    restart: unless-stopped
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    environment:
+      NODE_ENV: production
+      # The admin app gets ONLY the platform role — no access to tenant data.
+      PLATFORM_DATABASE_URL: postgres://cba_platform:${CBA_PLATFORM_PASSWORD}@db:5432/cba
+      APP_SECRET: ${APP_SECRET}
+      APP_URL: https://${APP_DOMAIN}
+      ADMIN_URL: https://${ADMIN_DOMAIN}
+      ADMIN_ALLOWED_IPS: ${ADMIN_ALLOWED_IPS:-}
+      MAIL_FROM: ${MAIL_FROM:-CRAZY BUSINESS APP <no-reply@localhost>}
+      SMTP_URL: ${SMTP_URL:-}
+    command: ["pnpm", "--filter", "@cba/admin", "start"]
+
+  # Automatic HTTPS (Let's Encrypt) for both domains.
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [web, admin]
+    ports: ["80:80", "443:443"]
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL (for HTTPS certificates)}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # Runs the daily maintenance job (notifications, expiries, purges) at 06:00 IST (00:30 UTC).
+  cron:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on: [web]
+    environment:
+      CRON_SECRET: ${CRON_SECRET}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          now=$$(date -u +%s)
+          next=$$(( now - now % 86400 + 1800 ))
+          [ "$$next" -le "$$now" ] && next=$$(( next + 86400 ))
+          sleep $$(( next - now ))
+          curl -fsS -X POST http://web:3000/api/v1/cron/daily -H "Authorization: Bearer $$CRON_SECRET" || echo "daily job failed"
+        done
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:

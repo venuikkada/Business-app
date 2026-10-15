@@ -14,6 +14,7 @@ Last updated: 15 Oct 2026. "Tested" means covered by the automated tests in
 | Android `:core` (GST, API client, offline sync) | ✅ Done, tested |
 | Android `:app` (Compose UI) | ⚠️ **Compiles** — GitHub Actions builds a debug APK on every push (downloadable artifact `crazy-business-debug-apk`). It has **never been run** on a phone or emulator, has no UI tests, and **no signed release (AAB) has been built or published**. |
 | Docs, `.env.example`, CI workflow, backup scripts | ✅ Done |
+| Production Docker stack for Hostinger VPS (`deploy/hostinger`) | ✅ Tested locally end-to-end over HTTPS; **not yet run on a real Hostinger server** |
 
 ## Modules (spec A–M)
 

@@ -86,3 +86,14 @@ jobs:
           name: crazy-business-debug-apk
           path: apps/android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
+
+  docker-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the production image (Hostinger VPS stack)
+        run: docker build -t crazy-business:ci .
+      - name: Validate the compose file
+        working-directory: deploy/hostinger
+        run: cp .env.example .env && sed -i 's/^\(DB_OWNER_PASSWORD\|CBA_APP_PASSWORD\|CBA_PLATFORM_PASSWORD\|APP_SECRET\|CRON_SECRET\)=$/\1=ci/' .env && docker compose config -q

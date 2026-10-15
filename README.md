@@ -78,7 +78,8 @@ See [docs/TESTING.md](docs/TESTING.md) for the results and a manual checklist.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — design, data model, modules
 - [docs/SECURITY.md](docs/SECURITY.md) — tenant isolation, auth, RBAC, audit, payments
 - [docs/API.md](docs/API.md) — REST API conventions and endpoints
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — production setup in India
+- [docs/DEPLOY_HOSTINGER.md](docs/DEPLOY_HOSTINGER.md) — one-command deploy on a Hostinger VPS (Docker)
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — production setup in India (any provider)
 - [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) — backups and verified restores
 - [docs/TESTING.md](docs/TESTING.md) — automated results and manual QA checklist
 - [docs/PRICING.md](docs/PRICING.md) — plans, limits and how to change them
