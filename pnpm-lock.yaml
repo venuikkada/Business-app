@@ -8,6 +8,67 @@ importers:
 
   .: {}
 
+  apps/admin:
+    dependencies:
+      '@cba/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@cba/server':
+        specifier: workspace:*
+        version: link:../../packages/server
+      '@cba/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      jszip:
+        specifier: 3.10.1
+        version: 3.10.1
+      next:
+        specifier: 15.5.28
+        version: 15.5.28(@playwright/test@1.56.1)(@types/node@22.10.7)(react-dom@19.1.10(react@19.1.10))(react@19.1.10)
+      pdfkit:
+        specifier: 0.15.2
+        version: 0.15.2
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+      qrcode:
+        specifier: 1.5.4
+        version: 1.5.4
+      react:
+        specifier: 19.1.10
+        version: 19.1.10
+      react-dom:
+        specifier: 19.1.10
+        version: 19.1.10(react@19.1.10)
+      server-only:
+        specifier: 0.0.1
+        version: 0.0.1
+      zod:
+        specifier: 3.24.1
+        version: 3.24.1
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: 4.3.3
+        version: 4.3.3
+      '@types/node':
+        specifier: 22.10.7
+        version: 22.10.7
+      '@types/qrcode':
+        specifier: 1.5.5
+        version: 1.5.5
+      '@types/react':
+        specifier: 19.1.8
+        version: 19.1.8
+      '@types/react-dom':
+        specifier: 19.1.6
+        version: 19.1.6(@types/react@19.1.8)
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+
   apps/web:
     dependencies:
       '@cba/core':
@@ -16,6 +77,9 @@ importers:
       '@cba/server':
         specifier: workspace:*
         version: link:../../packages/server
+      '@cba/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       jszip:
         specifier: 3.10.1
         version: 3.10.1
@@ -133,6 +197,25 @@ importers:
       vitest:
         specifier: 3.0.5
         version: 3.0.5(@types/node@22.10.7)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.19.2)
+
+  packages/ui:
+    dependencies:
+      '@cba/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/react':
+        specifier: 19.1.8
+        version: 19.1.8
+      next:
+        specifier: 15.5.28
+        version: 15.5.28(@playwright/test@1.56.1)(@types/node@22.10.7)(react-dom@19.1.10(react@19.1.10))(react@19.1.10)
+      react:
+        specifier: 19.1.10
+        version: 19.1.10
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
 
 packages:
 

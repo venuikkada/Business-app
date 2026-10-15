@@ -27,3 +27,4 @@ packages/server/test/.test-env.json
 packages/server/test/.storage/
 playwright-report/
 test-results/
+*.tsbuildinfo

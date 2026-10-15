@@ -27,7 +27,7 @@ const securityHeaders = [
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ["@cba/core", "@cba/server"],
+  transpilePackages: ["@cba/core", "@cba/server", "@cba/ui"],
   serverExternalPackages: ["pg", "pdfkit", "qrcode", "jszip"],
   outputFileTracingIncludes: { "/**": ["../../packages/server/assets/fonts/**"] },
   outputFileTracingRoot: new URL("../..", import.meta.url).pathname,
