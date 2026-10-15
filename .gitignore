@@ -1,0 +1,27 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+playwright-report/
+test-results/
+.turbo/
+# Android
+apps/android/.gradle/
+apps/android/build/
+apps/android/**/build/
+apps/android/local.properties
+apps/android/keystore.properties
+*.jks
+*.keystore
+.idea/
+.DS_Store
+# uploads in local dev
+storage/
+backups/
+test/.test-env.json
+packages/server/test/.storage/

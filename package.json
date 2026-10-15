@@ -1,0 +1,19 @@
+{
+  "name": "crazy-business-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CRAZY BUSINESS APP — One App. Complete Business Control.",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "pnpm -r --filter ./apps/web --filter ./apps/admin build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm --filter @cba/core test && pnpm --filter @cba/server test",
+    "test:e2e": "pnpm --filter @cba/web test:e2e",
+    "db:migrate": "pnpm --filter @cba/server db:migrate",
+    "db:seed": "pnpm --filter @cba/server db:seed",
+    "dev": "pnpm --filter @cba/web dev",
+    "dev:admin": "pnpm --filter @cba/admin dev"
+  }
+}

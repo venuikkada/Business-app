@@ -1,0 +1,1 @@
+{"DATABASE_URL":"postgres://cba_app:cba_test_role_password@localhost:5432/cba_test_2574_1792062812255","PLATFORM_DATABASE_URL":"postgres://cba_platform:cba_test_role_password@localhost:5432/cba_test_2574_1792062812255","OWNER_URL":"postgres://postgres:postgres@localhost:5432/cba_test_2574_1792062812255"}

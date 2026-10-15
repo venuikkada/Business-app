@@ -1,0 +1,71 @@
+{
+  "description": "Shared GST calculation vectors. Hand-verified. Used by the TypeScript engine (packages/core) and the Kotlin engine (apps/android/core). Expected values are rupee strings with 2 decimals.",
+  "cases": [
+    {
+      "name": "intra-state exclusive 18%",
+      "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true,
+        "lines": [ { "quantity": "2", "unitPrice": "500", "taxRate": 18 } ] },
+      "expect": { "taxableTotal": "1000.00", "cgstTotal": "90.00", "sgstTotal": "90.00", "igstTotal": "0.00", "taxTotal": "180.00", "roundOff": "0.00", "grandTotal": "1180.00",
+        "lines": [ { "taxableValue": "1000.00", "cgst": "90.00", "sgst": "90.00", "total": "1180.00" } ] }
+    },
+    {
+      "name": "intra-state tax inclusive MRP billing",
+      "input": { "pricesIncludeTax": true, "isInterState": false, "roundOff": true,
+        "lines": [ { "quantity": "1", "unitPrice": "1180", "taxRate": 18 } ] },
+      "expect": { "taxableTotal": "1000.00", "cgstTotal": "90.00", "sgstTotal": "90.00", "taxTotal": "180.00", "grandTotal": "1180.00",
+        "lines": [ { "taxableValue": "1000.00", "total": "1180.00" } ] }
+    },
+    {
+      "name": "inter-state with 10% line discount and round-off up",
+      "input": { "pricesIncludeTax": false, "isInterState": true, "roundOff": true,
+        "lines": [ { "quantity": "3", "unitPrice": "333.33", "discountType": "percent", "discountValue": "10", "taxRate": 12 } ] },
+      "expect": { "grossTotal": "999.99", "lineDiscountTotal": "100.00", "taxableTotal": "899.99", "igstTotal": "108.00", "cgstTotal": "0.00", "taxTotal": "108.00", "totalBeforeRounding": "1007.99", "roundOff": "0.01", "grandTotal": "1008.00",
+        "lines": [ { "gross": "999.99", "lineDiscount": "100.00", "taxableValue": "899.99", "igst": "108.00", "total": "1007.99" } ] }
+    },
+    {
+      "name": "document discount pro-rated across lines",
+      "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": false, "documentDiscountType": "amount", "documentDiscountValue": "100",
+        "lines": [ { "quantity": "1", "unitPrice": "300", "taxRate": 18 }, { "quantity": "1", "unitPrice": "700", "taxRate": 18 } ] },
+      "expect": { "documentDiscount": "100.00", "discountTotal": "100.00", "taxableTotal": "900.00", "cgstTotal": "81.00", "sgstTotal": "81.00", "taxTotal": "162.00", "grandTotal": "1062.00",
+        "lines": [ { "documentDiscountShare": "30.00", "taxableValue": "270.00", "cgst": "24.30", "total": "318.60" }, { "documentDiscountShare": "70.00", "taxableValue": "630.00", "cgst": "56.70", "total": "743.40" } ] }
+    },
+    {
+      "name": "delivery charges taxed separately, mixed rates breakup",
+      "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true, "additionalCharges": "100", "additionalChargesTaxRate": 18,
+        "lines": [ { "quantity": "1", "unitPrice": "1000", "taxRate": 5 } ] },
+      "expect": { "additionalCharges": "100.00", "additionalChargesTax": "18.00", "taxableTotal": "1100.00", "cgstTotal": "34.00", "sgstTotal": "34.00", "taxTotal": "68.00", "grandTotal": "1168.00",
+        "taxBreakup": [ { "taxRate": "5", "taxableValue": "1000.00", "cgst": "25.00", "sgst": "25.00", "igst": "0.00", "taxAmount": "50.00" }, { "taxRate": "18", "taxableValue": "100.00", "cgst": "9.00", "sgst": "9.00", "igst": "0.00", "taxAmount": "18.00" } ] }
+    },
+    {
+      "name": "half-paisa rounding and rupee round-off",
+      "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true,
+        "lines": [ { "quantity": "1", "unitPrice": "10.05", "taxRate": 5 } ] },
+      "expect": { "taxableTotal": "10.05", "cgstTotal": "0.25", "sgstTotal": "0.25", "totalBeforeRounding": "10.55", "roundOff": "0.45", "grandTotal": "11.00" }
+    },
+    {
+      "name": "fractional quantity, exempt goods, round-off down",
+      "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true,
+        "lines": [ { "quantity": "2.5", "unitPrice": "40.10", "taxRate": 0 } ] },
+      "expect": { "grossTotal": "100.25", "taxTotal": "0.00", "roundOff": "-0.25", "grandTotal": "100.00" }
+    },
+    {
+      "name": "largest remainder allocation keeps paise exact",
+      "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": false, "documentDiscountType": "amount", "documentDiscountValue": "0.10",
+        "lines": [ { "quantity": "1", "unitPrice": "1", "taxRate": 0 }, { "quantity": "1", "unitPrice": "1", "taxRate": 0 }, { "quantity": "1", "unitPrice": "1", "taxRate": 0 } ] },
+      "expect": { "documentDiscount": "0.10", "grandTotal": "2.90",
+        "lines": [ { "documentDiscountShare": "0.04" }, { "documentDiscountShare": "0.03" }, { "documentDiscountShare": "0.03" } ] }
+    },
+    {
+      "name": "flat amount line discount, inclusive, inter-state",
+      "input": { "pricesIncludeTax": true, "isInterState": true, "roundOff": false,
+        "lines": [ { "quantity": "1", "unitPrice": "2360", "discountType": "amount", "discountValue": "236", "taxRate": 18 } ] },
+      "expect": { "taxableTotal": "1800.00", "igstTotal": "324.00", "grandTotal": "2124.00" }
+    }
+  ],
+  "errors": [
+    { "name": "discount larger than line", "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true, "lines": [ { "quantity": "1", "unitPrice": "100", "discountType": "amount", "discountValue": "150", "taxRate": 18 } ] } },
+    { "name": "unsupported rate", "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true, "lines": [ { "quantity": "1", "unitPrice": "100", "taxRate": 15 } ] } },
+    { "name": "zero quantity", "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true, "lines": [ { "quantity": "0", "unitPrice": "100", "taxRate": 18 } ] } },
+    { "name": "document discount above subtotal", "input": { "pricesIncludeTax": false, "isInterState": false, "roundOff": true, "documentDiscountType": "amount", "documentDiscountValue": "500", "lines": [ { "quantity": "1", "unitPrice": "100", "taxRate": 0 } ] } }
+  ]
+}
