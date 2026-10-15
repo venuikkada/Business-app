@@ -1,4 +1,5 @@
 import type { Tenant } from "../context";
+import { appTx, type Db } from "../db";
 import { AppError, notFound } from "../errors";
 import { camelize } from "../util";
 
@@ -26,41 +27,48 @@ export function canApprove(t: Tenant, kind: ApprovalKind) {
 }
 
 /** Creates (or reuses) a pending approval request and notifies approvers. */
-export async function requestApproval(t: Tenant, kind: ApprovalKind, entityType: string, entityId: string | null, payload: Record<string, unknown>, reason: string) {
-  const existing = await t.db.maybe<{ id: string }>(
+async function insertApproval(db: Db, t: Tenant, kind: ApprovalKind, entityType: string, entityId: string | null, payload: Record<string, unknown>, reason: string) {
+  const existing = await db.maybe<{ id: string }>(
     `select id from approval_requests where kind = $1 and entity_id is not distinct from $2 and requested_by = $3 and status = 'pending' and payload = $4::jsonb`,
     [kind, entityId, t.userId, JSON.stringify(payload)],
   );
-  const id =
-    existing?.id ??
-    (
-      await t.db.one<{ id: string }>(
-        `insert into approval_requests(business_id, kind, entity_type, entity_id, payload, reason, requested_by)
-         values ($1,$2,$3,$4,$5,$6,$7) returning id`,
-        [t.businessId, kind, entityType, entityId, JSON.stringify(payload), reason, t.userId],
-      )
-    ).id;
-  if (!existing) {
-    const approvers = await t.db.query<{ user_id: string }>(
-      `select m.user_id from memberships m join roles r on r.id = m.role_id
-        where m.status = 'active' and $1 = any(r.permissions) and m.user_id <> $2`,
-      [APPROVER_PERMISSION[kind], t.userId],
+  if (existing) return existing.id;
+  const { id } = await db.one<{ id: string }>(
+    `insert into approval_requests(business_id, kind, entity_type, entity_id, payload, reason, requested_by)
+     values ($1,$2,$3,$4,$5,$6,$7) returning id`,
+    [t.businessId, kind, entityType, entityId, JSON.stringify(payload), reason, t.userId],
+  );
+  const approvers = await db.query<{ user_id: string }>(
+    `select m.user_id from memberships m join roles r on r.id = m.role_id
+      where m.status = 'active' and $1 = any(r.permissions) and m.user_id <> $2`,
+    [APPROVER_PERMISSION[kind], t.userId],
+  );
+  for (const a of approvers) {
+    await db.exec(
+      `insert into notifications(business_id, user_id, kind, title, body, entity_type, entity_id, dedupe_key)
+       values ($1,$2,'approval_request',$3,$4,'approval',$5,$6) on conflict do nothing`,
+      [t.businessId, a.user_id, `Approval needed: ${kind.replace("_", " ")}`, `${t.user.fullName}: ${reason}`, id, `approval:${id}`],
     );
-    for (const a of approvers) {
-      await t.db.exec(
-        `insert into notifications(business_id, user_id, kind, title, body, entity_type, entity_id, dedupe_key)
-         values ($1,$2,'approval_request',$3,$4,'approval',$5,$6) on conflict do nothing`,
-        [t.businessId, a.user_id, `Approval needed: ${kind.replace("_", " ")}`, `${t.user.fullName}: ${reason}`, id, `approval:${id}`],
-      );
-    }
-    await t.audit("approval.request", "approval", id, reason, undefined, payload);
   }
+  await db.exec(
+    `insert into audit_logs(business_id, user_id, action, entity_type, entity_id, summary, after, ip, user_agent)
+     values ($1,$2,'approval.request','approval',$3,$4,$5,$6::inet,$7)`,
+    [t.businessId, t.userId, id, reason, JSON.stringify(payload), t.meta.ip ?? null, t.meta.userAgent ?? null],
+  );
   return id;
 }
 
-/** Throws APPROVAL_REQUIRED (with the request id) so the client can show "waiting for approval". */
+export async function requestApproval(t: Tenant, kind: ApprovalKind, entityType: string, entityId: string | null, payload: Record<string, unknown>, reason: string) {
+  return insertApproval(t.db, t, kind, entityType, entityId, payload, reason);
+}
+
+/**
+ * Records the approval request in its own committed transaction (the
+ * caller's transaction is about to roll back) and throws APPROVAL_REQUIRED
+ * with the request id so the client can show "waiting for approval".
+ */
 export async function requireApproval(t: Tenant, kind: ApprovalKind, entityType: string, entityId: string | null, payload: Record<string, unknown>, reason: string): Promise<never> {
-  const id = await requestApproval(t, kind, entityType, entityId, payload, reason);
+  const id = await appTx({ userId: t.userId, businessId: t.businessId }, (db) => insertApproval(db, t, kind, entityType, entityId, payload, reason));
   throw new AppError("APPROVAL_REQUIRED", `${reason}. An approval request was sent to the owner/manager.`, { approvalId: id, kind });
 }
 

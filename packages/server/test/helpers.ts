@@ -7,7 +7,9 @@ export const STRONG = "Str0ngPassw0rd!";
 
 export async function newUser(name = "Test User") {
   const email = `${randomUUID().slice(0, 8)}@example.test`;
-  const r = await auth.register({ fullName: name, email, password: STRONG, acceptTerms: true }, meta);
+  // Unique client IP per test user so the per-IP signup rate limit is not hit.
+  const ip = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
+  const r = await auth.register({ fullName: name, email, password: STRONG, acceptTerms: true }, { ...meta, ip });
   return { ...r, email };
 }
 

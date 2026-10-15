@@ -143,7 +143,7 @@ export async function getPayment(t: Tenant, id: string) {
        from allocations a join documents d on d.id = a.document_id where a.payment_id = $1 order by d.issue_date`,
     [id],
   );
-  return { ...camelize<Record<string, unknown>>(p), allocations: camelize<Record<string, unknown>[]>(allocs) } as Record<string, unknown> & { allocations: Record<string, unknown>[] };
+  return { ...camelize<Record<string, unknown>>(p), allocations: camelize<Record<string, unknown>>(allocs) } as Record<string, unknown> & { allocations: Record<string, unknown>[] };
 }
 
 /** Allocates an existing payment's unallocated balance to a document. */

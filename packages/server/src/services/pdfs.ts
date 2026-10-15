@@ -156,7 +156,7 @@ export async function publicDocumentPdf(token: string) {
   const { document, items, business } = await publicDocument(token);
   const { camelize } = await import("../util");
   const d = camelize<Record<string, unknown>>(document);
-  const its = camelize<Array<Record<string, unknown>>>(items);
+  const its = camelize<Record<string, unknown>>(items);
   const s = (business.settings ?? {}) as Record<string, unknown>;
   const pdf = await renderDocumentPdf(
     {

@@ -66,7 +66,7 @@ export async function platformMetrics(ctx: AdminCtx) {
          from subscriptions s join plans p on p.id = s.plan_id where s.status = 'active' and p.price_monthly > 0`,
     );
     const revenue30 = await db.one<{ v: number }>("select coalesce(sum(amount), 0)::bigint v from subscription_payments where status = 'paid' and verified_at > now() - interval '30 days'");
-    return { ...totals, byPlan: camelize(byPlan), mrrPaise: mrr.mrr, revenue30dPaise: revenue30.v };
+    return { ...totals, byPlan: camelize(byPlan), mrrPaise: mrr.mrr, revenue30dPaise: revenue30.v } as Record<string, number> & { byPlan: Record<string, unknown>[]; mrrPaise: number; revenue30dPaise: number };
   });
 }
 
@@ -272,7 +272,7 @@ export async function getSupportTicketAdmin(ctx: AdminCtx, id: string) {
     const tk = await db.maybe("select t.*, b.name as business_name from support_tickets t join businesses b on b.id = t.business_id where t.id = $1", [id]);
     if (!tk) throw notFound("Ticket");
     const msgs = await db.query("select m.id, m.body, m.is_staff, m.created_at, u.full_name as author from support_ticket_messages m left join users u on u.id = m.author_user_id where m.ticket_id = $1 order by m.created_at", [id]);
-    return { ...camelize<Record<string, unknown>>(tk), messages: camelize(msgs) };
+    return { ...camelize<Record<string, unknown>>(tk), messages: camelize(msgs) } as Record<string, unknown> & { messages: Record<string, unknown>[] };
   });
 }
 

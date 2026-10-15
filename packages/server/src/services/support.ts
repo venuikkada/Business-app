@@ -18,7 +18,7 @@ export async function getSupportTicket(t: Tenant, id: string) {
   const tk = await t.db.maybe("select * from support_tickets where id = $1", [id]);
   if (!tk) throw notFound("Support ticket");
   const msgs = await t.db.query("select m.id, m.body, m.is_staff, m.created_at, u.full_name as author from support_ticket_messages m left join users u on u.id = m.author_user_id where m.ticket_id = $1 order by m.created_at", [id]);
-  return { ...camelize<Record<string, unknown>>(tk), messages: camelize(msgs) };
+  return { ...camelize<Record<string, unknown>>(tk), messages: camelize(msgs) } as Record<string, unknown> & { messages: Record<string, unknown>[] };
 }
 
 export async function replySupportTicket(t: Tenant, id: string, body: string) {

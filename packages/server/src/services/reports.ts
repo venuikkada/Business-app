@@ -126,7 +126,7 @@ export async function productProfitability(t: Tenant, r: Range, limit = 100) {
       group by 1, 2, 3, 4 order by revenue desc limit $3`,
     [r.from, r.to, limit],
   );
-  return camelize<Record<string, string>[]>(rows).map((x) => {
+  return camelize<Record<string, string>>(rows).map((x) => {
     const revenue = new D(x.revenue ?? 0);
     const cost = new D(x.cost ?? 0);
     const base = { productId: x.productId, name: x.name, sku: x.sku, quantity: new D(x.quantity ?? 0).toString(), revenue: revenue.toFixed(2) };

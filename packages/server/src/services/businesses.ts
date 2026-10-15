@@ -10,7 +10,7 @@ import { verifyPassword } from "../auth/crypto";
 export async function listMyBusinesses(user: AuthUser) {
   return appTx({ userId: user.id }, async (db) => {
     const rows = await db.query("select * from app.my_businesses()");
-    return camelize<Array<{ id: string; name: string; roleName: string; roleKey: string | null; status: string; planName: string | null }>>(rows);
+    return camelize<{ id: string; name: string; roleName: string; roleKey: string | null; status: string; planName: string | null }>(rows);
   });
 }
 

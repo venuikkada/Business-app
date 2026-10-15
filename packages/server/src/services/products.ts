@@ -76,12 +76,13 @@ export async function getProduct(t: Tenant, id: string) {
   const serials = p.track_serials
     ? await t.db.query("select serial_number, status, branch_id, warranty_until, sold_on from product_serials where product_id = $1 order by status, serial_number limit 500", [id])
     : [];
+  type Obj = Record<string, unknown>;
   return {
-    ...camelize<Record<string, unknown>>(scrub(t, p)),
-    stock: camelize<Record<string, unknown>[]>(stock).map((s) => scrub(t, s)),
+    ...camelize<Obj>(scrub(t, p)),
+    stock: camelize<Obj>(stock).map((s) => scrub(t, s)),
     variants: camelize(variants),
     serials: camelize(serials),
-  };
+  } as Obj & { stock: Obj[]; variants: Obj[]; serials: Obj[] };
 }
 
 export async function productMovements(t: Tenant, id: string, limit = 100) {
@@ -105,7 +106,7 @@ export async function findByBarcode(t: Tenant, code: string) {
   );
   if (r) return getProduct(t, r.id as string);
   const s = await t.db.maybe<{ product_id: string }>("select product_id from product_serials where serial_number = upper($1) limit 1", [code.trim()]);
-  if (s) return { ...(await getProduct(t, s.product_id)), matchedSerial: code.trim().toUpperCase() };
+  if (s) return { ...(await getProduct(t, s.product_id)), matchedSerial: code.trim().toUpperCase() } as Awaited<ReturnType<typeof getProduct>>;
   throw notFound("Product with this barcode");
 }
 

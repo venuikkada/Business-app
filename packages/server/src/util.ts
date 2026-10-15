@@ -5,11 +5,15 @@ export type ListQuery = z.infer<typeof listQuerySchema>;
 
 const camel = (k: string) => k.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 
+type Obj = Record<string, unknown>;
 /** snake_case DB rows → camelCase API objects (recursively for json columns). */
-export function camelize<T = Record<string, unknown>>(v: unknown): T {
-  if (Array.isArray(v)) return v.map((x) => camelize(x)) as T;
+export function camelize<T = Obj>(v: Obj[]): T[];
+export function camelize<T = Obj>(v: Obj | null): T;
+export function camelize<T = Obj>(v: unknown): T;
+export function camelize<T = Obj>(v: unknown): T {
+  if (Array.isArray(v)) return v.map((x) => camelize<unknown>(x)) as T;
   if (v && typeof v === "object" && !(v instanceof Date) && !Buffer.isBuffer(v)) {
-    return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [camel(k), camelize(x)])) as T;
+    return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [camel(k), camelize<unknown>(x)])) as T;
   }
   return v as T;
 }

@@ -315,11 +315,8 @@ export async function deleteAccount(userId: string, password: string) {
   await appTx({ userId }, async (db) => {
     const u = await db.one<{ password_hash: string }>("select password_hash from users where id = $1", [userId]);
     if (!(await verifyPassword(password, u.password_hash))) throw new AppError("VALIDATION", "Password is incorrect");
-    const owned = await db.query<{ name: string }>(
-      `select b.name from memberships m join roles r on r.id = m.role_id join businesses b on b.id = m.business_id
-        where m.user_id = $1 and r.key = 'owner' and m.status = 'active' and b.status <> 'deleted'`,
-      [userId],
-    );
+    // Roles are tenant-scoped (RLS), so use the definer function that lists the caller's businesses.
+    const owned = await db.query<{ name: string }>("select name from app.my_businesses() where role_key = 'owner'");
     if (owned.length) {
       throw new AppError("BUSINESS_RULE", `You own ${owned.map((o) => o.name).join(", ")}. Delete the business or transfer ownership first.`);
     }

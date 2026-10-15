@@ -14,7 +14,8 @@ function partyParams(d: PartyInput) {
   ];
 }
 
-function present(r: Record<string, unknown>) {
+type Address = ReturnType<typeof addressFrom>;
+function present(r: Record<string, unknown>): Record<string, unknown> & { billingAddress: Address; shippingAddress: Address | null } {
   const { billing_line1, billing_line2, billing_city, billing_state_code, billing_pincode, shipping_line1, shipping_line2, shipping_city, shipping_state_code, shipping_pincode, ...rest } = r;
   void billing_line1; void billing_line2; void billing_city; void billing_state_code; void billing_pincode;
   void shipping_line1; void shipping_line2; void shipping_city; void shipping_state_code; void shipping_pincode;
@@ -96,7 +97,7 @@ export async function getParty(t: Tenant, id: string) {
      from documents where party_id = $1`,
     [id, t.today],
   );
-  return { ...present(r), stats: camelize(stats) };
+  return { ...present(r), stats: camelize(stats) } as ReturnType<typeof present> & { stats: Record<string, unknown> };
 }
 
 export async function createParty(t: Tenant, input: z.input<typeof partySchema> & { confirmDuplicate?: boolean }) {

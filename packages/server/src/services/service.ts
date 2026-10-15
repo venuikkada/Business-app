@@ -190,7 +190,7 @@ export async function getTicket(t: Tenant, id: string) {
       where st.id <> $1 and ${scope(t)} and (($2::text is not null and serial_number = $2) or party_id = $3) order by created_at desc limit 10`,
     [id, (r as { serial_number: string | null }).serial_number, (r as { party_id: string }).party_id],
   );
-  return { ...camelize<Record<string, unknown>>(r), events: camelize(events), parts: camelize(parts), history: camelize(history) };
+  return { ...camelize<Record<string, unknown>>(r), events: camelize(events), parts: camelize(parts), history: camelize(history) } as Record<string, unknown> & { events: Record<string, unknown>[]; parts: Record<string, unknown>[]; history: Record<string, unknown>[] };
 }
 
 export async function listTickets(t: Tenant, query: unknown) {
@@ -292,7 +292,7 @@ export async function getAmc(t: Tenant, id: string) {
   );
   if (!a) throw notFound("AMC contract");
   const tickets = await t.db.query("select id, number, status, issue, completed_at from service_tickets where amc_contract_id = $1 order by created_at desc", [id]);
-  return { ...camelize<Record<string, unknown>>(a), tickets: camelize(tickets) };
+  return { ...camelize<Record<string, unknown>>(a), tickets: camelize(tickets) } as Record<string, unknown> & { tickets: Record<string, unknown>[] };
 }
 
 export async function listAmcs(t: Tenant, query: unknown) {

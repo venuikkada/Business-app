@@ -703,8 +703,8 @@ export async function getDocument(t: Tenant, id: string) {
       if (!fin) delete c.unitCost;
       return c;
     }),
-    allocations: camelize<Obj[]>(allocations),
-    children: camelize<Obj[]>(children),
+    allocations: camelize<Obj>(allocations),
+    children: camelize<Obj>(children),
     isOverdue: ["issued", "partially_paid"].includes(d.status as string) && !!d.due_date && (d.due_date as string) < t.today,
     grossProfit: fin && d.cost_total !== null && d.doc_type === "invoice" ? new D(d.taxable_total as string).sub(d.cost_total as string).toFixed(2) : undefined,
   } as Obj & { items: Obj[]; allocations: Obj[]; children: Obj[] };
