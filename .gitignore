@@ -23,5 +23,5 @@ apps/android/keystore.properties
 # uploads in local dev
 storage/
 backups/
-test/.test-env.json
+packages/server/test/.test-env.json
 packages/server/test/.storage/
