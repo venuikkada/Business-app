@@ -1,4 +1,4 @@
-import { D, toCSV, dateRangeForPreset, type DateRangePreset } from "@cba/core";
+import { D, toCSV, dateRangeForPreset, addDays, type DateRangePreset } from "@cba/core";
 import type { Tenant } from "../context";
 import { AppError } from "../errors";
 import { camelize } from "../util";
@@ -105,7 +105,19 @@ export async function salesSummary(t: Tenant, r: Range, groupBy: "day" | "month"
     [r.from, r.to],
   );
   const pm = new Map(pay.map((p) => [p.period, p.collected]));
-  const periods = new Set([...rows.map((x) => x.period!), ...pay.map((p) => p.period)]);
+  // Include empty periods so charts do not draw misleading lines across gaps.
+  const periods = new Set<string>();
+  if (groupBy === "day") {
+    for (let d = r.from; d <= r.to && periods.size < 400; d = addDays(d, 1)) periods.add(d);
+  } else {
+    for (let m = r.from.slice(0, 7); m <= r.to.slice(0, 7) && periods.size < 120; ) {
+      periods.add(m);
+      const [y, mo] = m.split("-").map(Number) as [number, number];
+      m = mo === 12 ? `${y + 1}-01` : `${y}-${String(mo + 1).padStart(2, "0")}`;
+    }
+  }
+  for (const x of rows) periods.add(x.period!);
+  for (const p of pay) periods.add(p.period);
   const byPeriod = new Map(rows.map((x) => [x.period!, x]));
   return [...periods].sort().map((p) => {
     const x = byPeriod.get(p);
@@ -141,9 +153,9 @@ export async function partyPerformance(t: Tenant, r: Range, side: "customer" | "
   const type = side === "customer" ? ["invoice", "credit_note"] : ["purchase_bill", "debit_note"];
   const rows = await t.db.query(
     `select pa.id as party_id, pa.name, pa.phone,
-            count(*) filter (where d.doc_type = $3[1])::int as documents,
-            coalesce(sum(case when d.doc_type = $3[1] then d.grand_total else -d.grand_total end), 0) as total,
-            coalesce(sum(d.balance_due) filter (where d.doc_type = $3[1] and d.status in ('issued','partially_paid')), 0) as outstanding,
+            count(*) filter (where d.doc_type = ($3::text[])[1])::int as documents,
+            coalesce(sum(case when d.doc_type = ($3::text[])[1] then d.grand_total else -d.grand_total end), 0) as total,
+            coalesce(sum(d.balance_due) filter (where d.doc_type = ($3::text[])[1] and d.status in ('issued','partially_paid')), 0) as outstanding,
             max(d.issue_date) as last_date
        from documents d join parties pa on pa.id = d.party_id
       where d.doc_type = any($3) and d.status not in ('draft','cancelled') and d.issue_date between $1 and $2 and ${branchCond(t)}

@@ -1,0 +1,39 @@
+{
+  "name": "@cba/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@cba/core": "workspace:*",
+    "@cba/server": "workspace:*",
+    "jszip": "3.10.1",
+    "lucide-react": "1.57.0",
+    "next": "15.5.28",
+    "pdfkit": "0.15.2",
+    "qrcode": "1.5.4",
+    "react": "19.1.10",
+    "react-dom": "19.1.10",
+    "recharts": "2.15.4",
+    "server-only": "0.0.1",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.10.7",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6",
+    "pg": "8.13.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.7.3"
+  }
+}

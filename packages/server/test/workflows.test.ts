@@ -323,3 +323,31 @@ describe("CSV import, export, idempotency, duplicates", () => {
     expect(manifest.business.id).toBe(biz);
   });
 });
+
+describe("every report runs", () => {
+  it("returns data for all report types and date presets", async () => {
+    const { reports, products: prod, payments: pay } = await import("../src");
+    await as(O.user, biz, async (t) => {
+      for (const preset of ["today", "week", "month", "last_month", "fy", "last_fy"]) {
+        const r = reports.resolveRange(t, { preset });
+        await reports.profitAndLoss(t, r);
+        await reports.salesSummary(t, r, "day");
+        await reports.salesSummary(t, r, "month");
+        await reports.productProfitability(t, r);
+        await reports.partyPerformance(t, r, "customer");
+        await reports.partyPerformance(t, r, "supplier");
+        await reports.gstSummary(t, r);
+        await reports.employeePerformance(t, r);
+        await reports.branchPerformance(t, r);
+        await reports.expenseReport(t, r);
+        await reports.cashFlow(t, r);
+        await reports.dashboard(t, r);
+      }
+      await prod.stockValuation(t);
+      await pay.outstandingReport(t, "receivable");
+      await pay.outstandingReport(t, "payable");
+      const cust = await reports.partyPerformance(t, { from: "2020-01-01", to: "2030-12-31" }, "customer");
+      expect((cust as Array<{ name: string }>).some((c) => c.name === "Chennai Clinic")).toBe(true);
+    });
+  });
+});

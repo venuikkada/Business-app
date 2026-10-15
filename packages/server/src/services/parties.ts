@@ -52,7 +52,7 @@ export async function findDuplicates(t: Tenant, d: Pick<PartyInput, "name" | "ph
   return rows;
 }
 
-export async function listParties(t: Tenant, query: unknown & { type?: string }) {
+export async function listParties(t: Tenant, query: Record<string, unknown> | undefined) {
   t.require("parties.view");
   const q = parseList(query);
   const type = (query as { type?: string })?.type;

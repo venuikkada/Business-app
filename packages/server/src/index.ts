@@ -24,3 +24,4 @@ export { idempotent } from "./services/idempotency";
 export { migrate } from "./migrate";
 export { outbox, setMailTransport } from "./mailer";
 export { camelize } from "./util";
+export { sha256 } from "./auth/crypto";

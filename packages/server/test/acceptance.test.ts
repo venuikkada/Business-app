@@ -346,6 +346,8 @@ describe("11. invoice PDFs", () => {
       expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
       expect(pdf.length).toBeGreaterThan(5000);
       expect(filename).toMatch(/^INV-/);
+      // A short invoice must fit on one page (regression: footer used to spill onto extra pages).
+      expect(pdf.toString("latin1").match(/\/Type \/Pages[\s\S]*?\/Count (\d+)/)?.[1]).toBe("1");
       const doc = await documents.getDocument(t, inv.id as string);
       expect(doc.shareToken).toBeTruthy();
       const pub = await pdfs.publicDocumentPdf(doc.shareToken as string);

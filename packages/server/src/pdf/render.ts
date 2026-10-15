@@ -2,10 +2,33 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
-import { amountInWords, formatDateIN, formatIndianNumber, stateName, DOC_TYPE_META, PAYMENT_METHOD_LABEL, upiPaymentUri, type DocType } from "@cba/core";
+import { amountInWords, formatDateIN, formatIndianNumber, formatIndianPhone, stateName, DOC_TYPE_META, PAYMENT_METHOD_LABEL, upiPaymentUri, type DocType } from "@cba/core";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const FONT_DIR = path.resolve(here, "../../assets/fonts");
+import { existsSync } from "node:fs";
+
+/**
+ * Fonts are resolved at runtime because bundlers (Next.js) move this file.
+ * Override with CBA_FONT_DIR when deploying somewhere unusual.
+ */
+function fontDir(): string {
+  const candidates = [
+    process.env.CBA_FONT_DIR,
+    (() => {
+      try {
+        return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../assets/fonts");
+      } catch {
+        return undefined;
+      }
+    })(),
+    path.join(process.cwd(), "../../packages/server/assets/fonts"),
+    path.join(process.cwd(), "packages/server/assets/fonts"),
+  ].filter(Boolean) as string[];
+  const hit = candidates.find((d) => existsSync(path.join(d, "NotoSans-Regular.ttf")));
+  if (!hit) throw new Error("PDF fonts not found; set CBA_FONT_DIR");
+  return hit;
+}
+let FONT_DIR_CACHE: string | null = null;
+const FONT_DIR_GET = () => (FONT_DIR_CACHE ??= fontDir());
 const ORANGE = "#EA580C";
 const INK = "#1F2937";
 const MUTED = "#6B7280";
@@ -50,8 +73,8 @@ export interface PdfDocumentData {
 
 function newDoc() {
   const doc = new PDFDocument({ size: "A4", margins: { top: 36, bottom: 48, left: 36, right: 36 }, bufferPages: true, info: { Producer: "CRAZY BUSINESS APP", Creator: "CRAZY BUSINESS APP" } });
-  doc.registerFont("R", path.join(FONT_DIR, "NotoSans-Regular.ttf"));
-  doc.registerFont("B", path.join(FONT_DIR, "NotoSans-Bold.ttf"));
+  doc.registerFont("R", path.join(FONT_DIR_GET(), "NotoSans-Regular.ttf"));
+  doc.registerFont("B", path.join(FONT_DIR_GET(), "NotoSans-Bold.ttf"));
   doc.font("R").fillColor(INK);
   return doc;
 }
@@ -72,10 +95,14 @@ function footer(doc: PDFKit.PDFDocument, branding: boolean) {
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i++) {
     doc.switchToPage(i);
+    // Writing inside the bottom margin would otherwise trigger a page break.
+    const bottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
     const y = doc.page.height - 34;
     doc.font("R").fontSize(7).fillColor(MUTED);
     doc.text(`Page ${i + 1} of ${range.count}`, 36, y, { width: doc.page.width - 72, align: "right", lineBreak: false });
     if (branding) doc.text("Generated with CRAZY BUSINESS APP — One App. Complete Business Control.", 36, y, { width: 360, lineBreak: false });
+    doc.page.margins.bottom = bottom;
   }
 }
 
@@ -96,7 +123,7 @@ function header(doc: PDFKit.PDFDocument, b: PdfBusiness, title: string, meta: Ar
   doc.font("R").fontSize(8).fillColor(MUTED);
   const lines = [...(b.legalName && b.legalName !== b.name ? [b.legalName] : []), ...(b.address ?? [])];
   if (b.gstin) lines.push(`GSTIN: ${b.gstin}`);
-  const contact = [b.phone, b.email].filter(Boolean).join("  •  ");
+  const contact = [b.phone ? formatIndianPhone(b.phone) : null, b.email].filter(Boolean).join("  •  ");
   if (contact) lines.push(contact);
   doc.text(lines.join("\n"), x, doc.y + 2, { width: 300 });
   const leftBottom = doc.y;
@@ -152,7 +179,7 @@ export async function renderDocumentPdf(b: PdfBusiness, d: PdfDocumentData): Pro
     doc.font("R").fontSize(8).fillColor(INK).text(lines.slice(1).join("\n"), x + 8, doc.y + 1, { width: colW - 16 });
     return doc.y;
   };
-  const partyLines = [d.party.name, ...(d.party.billing ?? []), ...(d.party.gstin ? [`GSTIN: ${d.party.gstin}`] : []), ...(d.party.phone ? [`Phone: ${d.party.phone}`] : [])];
+  const partyLines = [d.party.name, ...(d.party.billing ?? []), ...(d.party.gstin ? [`GSTIN: ${d.party.gstin}`] : []), ...(d.party.phone ? [`Phone: ${formatIndianPhone(d.party.phone)}`] : [])];
   const y1 = partyBox(side === "sales" ? "Bill to" : "Supplier", partyLines, L);
   const y2 = d.party.shipping?.length ? partyBox("Ship to", [d.party.name, ...d.party.shipping], L + colW + 12) : boxY;
   const boxH = Math.max(y1, y2) - boxY + 8;
@@ -315,7 +342,7 @@ export async function renderDocumentPdf(b: PdfBusiness, d: PdfDocumentData): Pro
   const sigY = Math.min(Math.max(doc.y + 10, doc.page.height - 120), doc.page.height - 90);
   doc.font("B").fontSize(8.5).fillColor(INK).text(`For ${b.name}`, L + W - 200, sigY, { width: 200, align: "right" });
   doc.font("R").fontSize(7.5).fillColor(MUTED).text("Authorised signatory", L + W - 200, sigY + 34, { width: 200, align: "right" });
-  if (d.docType === "invoice" && !b.gstin) doc.font("R").fontSize(7).fillColor(MUTED).text("This is a computer-generated document.", L, sigY + 34);
+  doc.font("R").fontSize(7).fillColor(MUTED).text("This is a computer-generated document.", L, sigY + 34, { lineBreak: false });
 
   footer(doc, b.brandingFooter !== false);
   doc.end();
@@ -383,8 +410,8 @@ export interface PdfTable {
 export async function renderTablePdf(b: PdfBusiness, t: PdfTable): Promise<Buffer> {
   const landscape = t.columns.length > 6;
   const doc = new PDFDocument({ size: "A4", layout: landscape ? "landscape" : "portrait", margins: { top: 36, bottom: 48, left: 36, right: 36 }, bufferPages: true });
-  doc.registerFont("R", path.join(FONT_DIR, "NotoSans-Regular.ttf"));
-  doc.registerFont("B", path.join(FONT_DIR, "NotoSans-Bold.ttf"));
+  doc.registerFont("R", path.join(FONT_DIR_GET(), "NotoSans-Regular.ttf"));
+  doc.registerFont("B", path.join(FONT_DIR_GET(), "NotoSans-Bold.ttf"));
   const out = collect(doc);
   const L = 36;
   const W = doc.page.width - 72;

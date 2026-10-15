@@ -1,0 +1,1 @@
+{ "name": "CRAZY BUSINESS APP", "short_name": "CrazyBiz", "start_url": "/dashboard", "display": "standalone", "background_color": "#ffffff", "theme_color": "#ea580c", "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }
