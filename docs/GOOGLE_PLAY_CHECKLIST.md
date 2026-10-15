@@ -1,12 +1,13 @@
 # Google Play release checklist
 
-> Status: **no APK/AAB has been built or uploaded.** The `:app` module has not yet
-> been compiled (no Android SDK was available where it was written). Start at step 1.
+> Status: CI builds an unsigned **debug** APK on every push (for testing only). No
+> signed release AAB has been built and nothing has been uploaded to Play. The app has
+> not yet been run on a device. Start at step 1.
 
 ## 1. Build and fix
 
 - [ ] Open `apps/android` in Android Studio (latest stable), JDK 17, SDK 35 installed.
-- [ ] Gradle sync; fix any compile errors in `:app` (first-ever compile).
+- [ ] Gradle sync (CI already compiles `:app`); install the CI debug APK on 2–3 phones first.
 - [ ] Bump `compileSdk`/`targetSdk` (and AGP) if Play requires a newer API level at
       release time — Play requires targeting a recent Android version for new apps.
 - [ ] `gradle :core:test` green; run the app on an emulator (API 24 and latest) and a

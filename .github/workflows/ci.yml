@@ -76,7 +76,13 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-      - name: Kotlin core tests (GST vectors, API client, offline sync)
+      - name: Kotlin core tests + Android debug build
         working-directory: apps/android
-        # :app needs the Android SDK; GitHub runners include it, so build it too.
+        # GitHub runners include the Android SDK, so :app is compiled here too.
         run: ./gradlew :core:test :app:assembleDebug --no-daemon
+      - name: Upload debug APK (for testing on a phone — not a release build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: crazy-business-debug-apk
+          path: apps/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14

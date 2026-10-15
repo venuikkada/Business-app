@@ -8,9 +8,10 @@
 | Core unit tests (GST engine + shared vectors, money, Indian formats, GSTIN, words, CSV, schemas, permissions) | `pnpm --filter @cba/core test` | ✅ 337 passed |
 | Server integration tests against real PostgreSQL 16 (RLS on) | `pnpm --filter @cba/server test` | ✅ 47 passed |
 | Web + admin production build | `pnpm build` | ✅ |
+| GitHub Actions CI (all of the above on a clean runner) | `.github/workflows/ci.yml` | ✅ green |
 | Playwright E2E (Chromium desktop + Pixel 7 mobile) | `pnpm test:e2e` (+ `E2E_DEMO_EMAIL` for mobile) | ✅ 3 passed |
 | Kotlin `:core` (GST vectors shared with server, API client with mock server, offline draft sync) | `cd apps/android && gradle :core:test` | ✅ 11 passed (incl. live API contract test when `CBA_API_URL` is set) |
-| Kotlin `:app` (Compose UI) | `./gradlew :app:assembleDebug` | ⚠️ **not compiled here** (no Android SDK). CI compiles it on GitHub runners. |
+| Kotlin `:app` (Compose UI) | `./gradlew :app:assembleDebug` | ✅ compiles on GitHub Actions (debug APK artifact). ⚠️ Not yet run on a device/emulator. |
 | Backup → restore → verify | `scripts/backup.sh`, `restore.sh`, `verify-restore.sh` | ✅ identical counts and totals |
 
 Server tests create a throwaway database, run all migrations, connect as the real

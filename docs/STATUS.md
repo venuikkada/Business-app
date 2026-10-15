@@ -12,7 +12,7 @@ Last updated: 15 Oct 2026. "Tested" means covered by the automated tests in
 | Web app + REST API (~140 endpoints) | ✅ Done, built, E2E-tested, crawled for server errors |
 | Super-admin app (separate, TOTP) | ✅ Done, built, manually browser-tested |
 | Android `:core` (GST, API client, offline sync) | ✅ Done, tested |
-| Android `:app` (Compose UI) | ⚠️ **Written but never compiled or run** — the build environment had no Android SDK. CI on GitHub will be its first compile. **No APK has been built or published.** |
+| Android `:app` (Compose UI) | ⚠️ **Compiles** — GitHub Actions builds a debug APK on every push (downloadable artifact `crazy-business-debug-apk`). It has **never been run** on a phone or emulator, has no UI tests, and **no signed release (AAB) has been built or published**. |
 | Docs, `.env.example`, CI workflow, backup scripts | ✅ Done |
 
 ## Modules (spec A–M)
@@ -45,7 +45,7 @@ Last updated: 15 Oct 2026. "Tested" means covered by the automated tests in
 
 ## Before launch (must do)
 
-1. Compile and test the Android app on real devices; fix issues; build a signed AAB.
+1. Install the CI debug APK on real phones and test every screen; fix issues; build a signed AAB.
 2. Razorpay test-mode end-to-end, then live keys after KYC.
 3. Try S3 storage and SMTP with the real providers.
 4. Lawyer review of Terms & Privacy (DPDP Act 2023) and a Data Processing Agreement for customers.

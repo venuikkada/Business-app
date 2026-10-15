@@ -16,10 +16,10 @@ every permission, plan limit and tenant boundary.
 (`ANDROID_HOME`, `ANDROID_SDK_ROOT` or `local.properties` `sdk.dir`).
 
 > **Honest status:** `:core` is compiled and tested (11 tests, including an
-> optional live test against a running server). The `:app` sources were written
-> but **have not been compiled or run** in the environment they were authored in
-> (no Android SDK / emulator available there). Expect to fix small compile issues
-> on first build in Android Studio. No APK has been built or published.
+> optional live test against a running server). `:app` compiles: GitHub Actions
+> builds a **debug** APK on every push (artifact `crazy-business-debug-apk`).
+> It has **not yet been run on a phone or emulator**, so expect UI bugs on first
+> use. No signed release has been built or published to Google Play.
 
 ## Screens
 
