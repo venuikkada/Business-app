@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { DEFAULT_PLANS } from "@cba/core";
+import { sslOptions } from "./db";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const MIGRATIONS_DIR = path.resolve(here, "../../../db/migrations");
@@ -14,7 +15,7 @@ export const MIGRATIONS_DIR = path.resolve(here, "../../../db/migrations");
  * Must run as the schema owner (never as cba_app / cba_platform).
  */
 export async function migrate(ownerUrl: string, log: (m: string) => void = console.log): Promise<string[]> {
-  const client = new pg.Client({ connectionString: ownerUrl });
+  const client = new pg.Client({ connectionString: ownerUrl, ssl: sslOptions() });
   await client.connect();
   const applied: string[] = [];
   try {

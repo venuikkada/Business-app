@@ -50,11 +50,23 @@ function wrap(client: pg.PoolClient): Db {
   };
 }
 
+/**
+ * TLS for hosted PostgreSQL whose certificates are signed by the provider's own
+ * CA (e.g. Supabase): DB_SSL_CA_BASE64 holds that CA in PEM, base64-encoded.
+ * The server certificate is then fully verified (chain + hostname). Without
+ * it, TLS follows the connection string's sslmode.
+ */
+export function sslOptions(): pg.PoolConfig["ssl"] {
+  const ca = process.env.DB_SSL_CA_BASE64;
+  if (!ca) return undefined;
+  return { ca: Buffer.from(ca, "base64").toString("utf8"), rejectUnauthorized: true };
+}
+
 const pools = new Map<string, pg.Pool>();
 function pool(url: string): pg.Pool {
   let p = pools.get(url);
   if (!p) {
-    p = new pg.Pool({ connectionString: url, max: Number(process.env.DB_POOL_MAX ?? 10), idleTimeoutMillis: 30_000 });
+    p = new pg.Pool({ connectionString: url, ssl: sslOptions(), max: Number(process.env.DB_POOL_MAX ?? 10), idleTimeoutMillis: 30_000 });
     pools.set(url, p);
   }
   return p;
