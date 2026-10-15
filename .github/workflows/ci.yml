@@ -33,7 +33,7 @@ jobs:
       CBA_PLATFORM_PASSWORD: cba_platform_ci_password_123
       APP_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
       APP_URL: http://localhost:3000
-      STORAGE_LOCAL_DIR: ${{ runner.temp }}/storage
+      STORAGE_LOCAL_DIR: /tmp/cba-storage
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
