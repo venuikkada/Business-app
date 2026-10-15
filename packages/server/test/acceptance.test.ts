@@ -180,6 +180,14 @@ describe("3–6. customers, products, quotation → invoice, totals, stock", () 
     await expect(as(A.user, bizA, (t) => t.db.exec("update documents set grand_total = 1, taxable_total = 1, tax_total = 0, cgst_total = 0, sgst_total = 0 where id = $1", [id]))).rejects.toMatchObject({ code: "BUSINESS_RULE" });
     await expect(as(A.user, bizA, (t) => t.db.exec("delete from documents where id = $1", [id]))).rejects.toMatchObject({ code: "BUSINESS_RULE" });
     await expect(as(A.user, bizA, (t) => t.db.exec("update document_items set unit_price = 1 where document_id = $1", [id]))).rejects.toMatchObject({ code: "BUSINESS_RULE" });
+    // The purge bypass only works inside the privileged purge routine, not for the app role.
+    const sneaky = (sql: string) => as(A.user, bizA, async (t) => {
+      await t.db.exec("select set_config('app.purge', 'on', true)");
+      await t.db.exec(sql, [id]);
+    });
+    await expect(sneaky("update documents set grand_total = 1 where id = $1")).rejects.toMatchObject({ code: "BUSINESS_RULE" });
+    await expect(sneaky("delete from documents where id = $1")).rejects.toMatchObject({ code: "BUSINESS_RULE" });
+    await expect(sneaky("update document_items set unit_price = 1 where document_id = $1")).rejects.toMatchObject({ code: "BUSINESS_RULE" });
   });
 
   it("prevents negative stock by default and allows an audited owner override", async () => {

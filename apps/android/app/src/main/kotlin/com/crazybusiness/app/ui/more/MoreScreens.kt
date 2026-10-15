@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Payments
@@ -100,6 +101,8 @@ fun MoreScreen(open: (String) -> Unit, onSwitchBusiness: () -> Unit, onLoggedOut
         row("Offline drafts", Icons.Default.CloudUpload, drafts.size.takeIf { it > 0 }?.toString()) { open(Routes.DRAFTS) }
         row("Open full web app (reports, settings, team)", Icons.Default.OpenInBrowser) { Share.openUrl(context, BuildConfig.API_BASE_URL + "/dashboard") }
         row("Switch business", Icons.Default.SwapHoriz, onClick = onSwitchBusiness)
+        // Account deletion lives in the web app (same account); required to be reachable in-app by Play policy.
+        row("Delete my account or business", Icons.Default.DeleteForever) { Share.openUrl(context, BuildConfig.API_BASE_URL + "/settings/security") }
         row("Sign out", Icons.AutoMirrored.Filled.Logout) {
             scope.launch {
                 runCatching { c.api.logout() }

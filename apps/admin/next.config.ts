@@ -8,7 +8,7 @@ const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@cba/core", "@cba/server", "@cba/ui"],
-  serverExternalPackages: ["pg", "pdfkit", "qrcode", "jszip"],
+  serverExternalPackages: ["pg", "pdfkit", "qrcode", "jszip", "nodemailer"],
   outputFileTracingRoot: new URL("../..", import.meta.url).pathname,
   async headers() {
     return [
