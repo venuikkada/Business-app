@@ -68,6 +68,11 @@ export function Layout() {
               <NavLink to={n.to} end={n.to === "/"}><n.icon className="ic" />{t(n.key)}</NavLink>
             </div>
           ))}
+          <button className="side-user" onClick={() => nav("/account")}>
+            <span className="avatar">{initials}</span>
+            <span><b>{me?.user.name || "My account"}</b><small>{current?.me.role.name}</small></span>
+          </button>
+          <div className="built-by side">Built by <b>Venu</b></div>
         </aside>
         <div className="main">
           <header className="topbar">
@@ -83,7 +88,10 @@ export function Layout() {
             <button className="avatar" style={{ border: 0, cursor: "pointer" }} onClick={() => nav("/account")} aria-label={t("nav.account")}>{initials}</button>
           </header>
           {!online && <div style={{ padding: "8px 16px" }}><Banner kind="warn">{t("common.offline")}</Banner></div>}
-          <main className="content"><Outlet /></main>
+          <main className="content">
+            <Outlet />
+            <div className="built-by foot">Built with ❤️ by <b>Venu</b></div>
+          </main>
         </div>
         <nav className="bottomnav" aria-label="Main">
           {mobile.slice(0, 2).map((n) => <NavLink key={n.to} to={n.to} end={n.to === "/"}><n.icon className="ic" />{t(n.key)}</NavLink>)}

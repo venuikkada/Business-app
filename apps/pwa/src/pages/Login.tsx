@@ -192,6 +192,7 @@ export function Login() {
             <button type="button" className="linkbtn small" onClick={() => switchMode("password")}>{t("common.back")}</button>
           </form>
         )}
+        <div className="built-by">Built with ❤️ by <b>Venu</b></div>
       </div>
       </div>
     </div>

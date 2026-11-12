@@ -21,14 +21,37 @@ export function useLoad<T>(path: string | null, deps: unknown[] = []) {
   return { data, error, reload, setData };
 }
 
-/** Downloads a server-made PDF (sent with the same sign-in and business as API calls). */
-export async function downloadPdf(path: string, filename: string) {
+async function fetchPdf(path: string): Promise<Blob> {
   const headers: Record<string, string> = {};
   const tid = getTenantId();
   if (tid) headers["X-Tenant-Id"] = tid;
   const res = await fetch(`/api/v1${path}`, { credentials: "same-origin", headers });
   if (!res.ok) throw new Error("Could not create the PDF. Please try again.");
-  const url = URL.createObjectURL(await res.blob());
+  return res.blob();
+}
+
+/** True on phones whose share sheet accepts files (Android Chrome, iOS Safari). */
+export function canSharePdf(): boolean {
+  try {
+    return !!navigator.canShare?.({ files: [new File([""], "a.pdf", { type: "application/pdf" })] });
+  } catch {
+    return false;
+  }
+}
+
+/** Opens the phone's share sheet with the PDF attached, so the bill itself goes on WhatsApp. */
+export async function sharePdf(path: string, filename: string, text: string) {
+  const file = new File([await fetchPdf(path)], `${filename.replace(/[^\w.-]+/g, "-")}.pdf`, { type: "application/pdf" });
+  try {
+    await navigator.share({ files: [file], text });
+  } catch (e: any) {
+    if (e?.name !== "AbortError") throw new Error("Sharing did not work on this phone. Use the PDF button instead.");
+  }
+}
+
+/** Downloads a server-made PDF (sent with the same sign-in and business as API calls). */
+export async function downloadPdf(path: string, filename: string) {
+  const url = URL.createObjectURL(await fetchPdf(path));
   const a = document.createElement("a");
   a.href = url;
   a.download = `${filename.replace(/[^\w.-]+/g, "-")}.pdf`;

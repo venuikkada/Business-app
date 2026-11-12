@@ -1,10 +1,10 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { calculateDocument } from "@cba/core";
-import { ArrowLeft, Ban, Download, FileText, IndianRupee, MessageCircle, Plus, ReceiptText, RefreshCw, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, Ban, Download, FileText, IndianRupee, MessageCircle, Plus, ReceiptText, RefreshCw, Search, Share2, Trash2 } from "lucide-react";
 import { post } from "../lib/api";
 import { date, inr } from "../lib/format";
-import { downloadPdf, useLoad } from "../lib/hooks";
+import { canSharePdf, downloadPdf, sharePdf, useLoad } from "../lib/hooks";
 import { useSession } from "../lib/session";
 import { useErrorText } from "../i18n";
 import { Banner, Empty, Input, Loading, Modal, Num, PageHead, Select, StatusBadge } from "../components/ui";
@@ -247,20 +247,54 @@ export function DocView() {
   if (!d) return error ? <Banner>{error}</Banner> : <Loading />;
   const isInv = d.docType === "invoice";
   const run = async (fn: () => Promise<any>) => { setMsg(""); try { const out = await fn(); if (out?.id) setData(out); return out; } catch (e) { setMsg(errText(e)); } };
-  const wa = `https://wa.me/${d.customer?.mobile ? d.customer.mobile.replace(/\D/g, "").replace(/^(\d{10})$/, "91$1") : ""}?text=${encodeURIComponent(
-    `${isInv ? "Invoice" : "Quotation"} ${d.number} from ${current!.tenant.name}\nAmount: ${inr(d.grandTotal)}${isInv && Number(d.balanceDue) > 0 ? `\nBalance due: ${inr(d.balanceDue)}` : ""}\nThank you!`)}`;
+  const taxed = Number(d.cgst) + Number(d.sgst) + Number(d.igst) > 0;
+  const tn = current!.tenant;
+  // Full bill as a WhatsApp message: every item, quantity, rate, GST and the totals.
+  const text = [
+    `*${tn.name}*`,
+    [tn.addressLine1, tn.city].filter(Boolean).join(", "),
+    tn.gstin ? `GSTIN: ${tn.gstin}` : null,
+    "",
+    `*${isInv ? (taxed ? "TAX INVOICE" : "INVOICE") : "QUOTATION"}*  ${d.number}`,
+    `Date: ${date(d.docDate)}`,
+    d.validUntil ? `Valid until: ${date(d.validUntil)}` : null,
+    `Customer: ${d.customer?.name ?? ""}`,
+    d.customer?.gstin ? `Customer GSTIN: ${d.customer.gstin}` : null,
+    "",
+    "*Items*",
+    ...d.lines.flatMap((l: any, i: number) => [
+      `${i + 1}. ${l.description}${l.hsn ? ` (HSN ${l.hsn})` : null}`,
+      `     ${Number(l.qty)} ${l.unit} x ${inr(l.rate)}${Number(l.discountPct) ? `, less ${Number(l.discountPct)}%` : null}${Number(l.gstRate) ? `, GST ${Number(l.gstRate)}%` : null} = *${inr(l.total)}*`,
+    ]),
+    "",
+    Number(d.discountTotal) > 0 ? `Discount: - ${inr(d.discountTotal)}` : null,
+    taxed ? `Taxable value: ${inr(d.taxableTotal)}` : null,
+    Number(d.cgst) > 0 ? `CGST: ${inr(d.cgst)}` : null,
+    Number(d.sgst) > 0 ? `SGST: ${inr(d.sgst)}` : null,
+    Number(d.igst) > 0 ? `IGST: ${inr(d.igst)}` : null,
+    `*Total: ${inr(d.grandTotal)}*`,
+    isInv ? `Paid: ${inr(d.amountPaid)}` : null,
+    isInv ? (Number(d.balanceDue) > 0 ? `*Balance due: ${inr(d.balanceDue)}*` : "Fully paid ✅") : null,
+    d.notes ? `\nNote: ${d.notes}` : null,
+    "",
+    tn.phone ? `Thank you! For any help call ${tn.phone}.` : "Thank you for your business!",
+  ].filter((x) => x !== null).join("\n").replace(/\n{3,}/g, "\n\n");
+  const waNumber = d.customer?.mobile ? d.customer.mobile.replace(/\D/g, "").replace(/^(\d{10})$/, "91$1") : "";
+  const wa = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
   return (
     <div className="stack">
       <PageHead title={`${LABEL[d.docType as DocType]} ${d.number}`} sub={`${date(d.docDate)} · ${d.customer?.name}`}>
         <button className="btn" onClick={() => nav(isInv ? "/invoices" : "/quotations")}><ArrowLeft className="ic" />Back</button>
         <button className="btn" onClick={() => run(() => downloadPdf(`/sales/${d.id}/pdf`, d.number))}><Download className="ic" />PDF</button>
-        <a className="btn" href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle className="ic" />WhatsApp</a>
+        <a className="btn wa" href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle className="ic" />WhatsApp bill</a>
+        {canSharePdf() && <button className="btn" onClick={() => run(() => sharePdf(`/sales/${d.id}/pdf`, d.number, text))}><Share2 className="ic" />Share PDF</button>}
         {isInv && d.status !== "cancelled" && Number(d.balanceDue) > 0 && can("payments.create") && <button className="btn success" onClick={() => { setAmount(Number(d.balanceDue)); setPay(true); }}><IndianRupee className="ic" />Receive payment</button>}
         {!isInv && d.status === "sent" && can("sales.create") && <button className="btn primary" onClick={async () => { const inv = await run(() => post(`/sales/${d.id}/convert`)); if (inv?.id) nav(`/sales/${inv.id}`); }}><RefreshCw className="ic" />Convert to invoice</button>}
         {d.status !== "cancelled" && d.status !== "converted" && can("sales.cancel") && <button className="btn danger" onClick={() => { const r = prompt("Reason for cancelling?"); if (r && r.trim().length >= 3) run(() => post(`/sales/${d.id}/cancel`, { reason: r })); }}><Ban className="ic" />Cancel</button>}
       </PageHead>
       <Banner>{msg}</Banner>
       <div className="paper stack">
+        <div className="paper-band" />
         <div className="spread" style={{ alignItems: "flex-start" }}>
           <div><b style={{ fontSize: "1.15rem" }}>{current!.tenant.name}</b><div className="muted small">{[current!.tenant.addressLine1, current!.tenant.city].filter(Boolean).join(", ")}</div>{current!.tenant.gstin && <div className="muted small">GSTIN {current!.tenant.gstin}</div>}</div>
           <div style={{ textAlign: "right" }}><div className="doc-title">{isInv ? "INVOICE" : "QUOTATION"}</div><div><b>{d.number}</b></div><StatusBadge status={d.status} /></div>

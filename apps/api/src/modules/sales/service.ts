@@ -113,6 +113,8 @@ export async function createDocument(ctx: TenantCtx, input: DocInput) {
     );
     for (const [i, l] of lines.entries()) {
       const c = calc.lines[i]!;
+      // With GST-inclusive prices the customer must see exactly qty x price (not a paisa more from tax rounding).
+      const lineTotal = input.priceIncludesTax && dec(c.documentDiscountShare).isZero() ? dec(c.gross).minus(c.lineDiscount).toFixed(2) : c.total;
       await tdb.exec(
         `INSERT INTO sales_document_lines (tenant_id, document_id, line_no, item_id, variant_id, description, hsn_sac, qty, unit_code, rate, discount_pct,
                 discount_amount, taxable_value, gst_rate, cgst, sgst, igst, line_total, cost_price)
@@ -120,7 +122,7 @@ export async function createDocument(ctx: TenantCtx, input: DocInput) {
         {
           doc: d.insertId, n: i + 1, item: l.v?.item_id ?? null, variant: l.v?.id ?? null, desc: l.description, hsn: l.hsn || l.v?.hsn_sac || null, qty: l.qty,
           unit: l.unit || l.v?.unit || "NOS", rate: l.rate, dp: l.discountPct ?? 0, da: dec(c.lineDiscount).plus(c.documentDiscountShare).toFixed(2),
-          taxable: c.taxableValue, gst: l.gstRate, cgst: c.cgst, sgst: c.sgst, igst: c.igst, total: c.total, cost: l.v?.purchase_price ?? null,
+          taxable: c.taxableValue, gst: l.gstRate, cgst: c.cgst, sgst: c.sgst, igst: c.igst, total: lineTotal, cost: l.v?.purchase_price ?? null,
         },
       );
       if (invoice && l.v?.track_stock) {

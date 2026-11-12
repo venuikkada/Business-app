@@ -28,22 +28,24 @@ export function Home() {
 
   return (
     <div className="stack">
-      <div className="page-head">
+      <section className="hero-card">
         <div>
-          <h1>{t("home.welcome", { name: (me?.user.name || "").split(" ")[0] ?? "" })} 👋</h1>
-          <div className="muted small">{tenant.name} · {current!.me.role.name}</div>
+          <div className="hero-hello">{t("home.welcome", { name: (me?.user.name || "").split(" ")[0] ?? "" })} 👋</div>
+          <div className="hero-label">Today's sales · {tenant.name}</div>
+          <div className="hero-value">{inr(d?.today ?? 0)}</div>
+          <div className="hero-sub">{d?.todayCount ?? 0} invoices today · {inr(d?.month ?? 0)} this month</div>
         </div>
-        <div className="row">
-          {can("sales.create") && <Link className="btn" to="/quotations/new"><FileText className="ic" />New quotation</Link>}
-          {can("sales.create") && <Link className="btn primary" to="/invoices/new"><Plus className="ic" />{t("nav.newInvoice")}</Link>}
+        <div className="hero-actions">
+          {can("sales.create") && <Link className="btn light" to="/invoices/new"><Plus className="ic" />{t("nav.newInvoice")}</Link>}
+          {can("sales.create") && <Link className="btn ghost" to="/quotations/new"><FileText className="ic" />New quotation</Link>}
         </div>
-      </div>
+      </section>
       {sub === "trial" && <Banner kind="ok">{t("home.trialEnds", { date: date(tenant.subscriptionEndsAt) })}</Banner>}
       {sub === "grace" && <Banner kind="warn">{t("home.planGrace")}</Banner>}
       {sub === "expired" && <Banner kind="error">{t("home.planExpired")}</Banner>}
 
       <div className="stat-grid">
-        <div className="stat"><div className="chip c-indigo"><IndianRupee className="ic" /></div><div className="label">Today's sales</div><div className="value">{inr(d?.today ?? 0)}</div><div className="sub">{d?.todayCount ?? 0} invoices</div></div>
+        <div className="stat"><div className="chip c-indigo"><IndianRupee className="ic" /></div><div className="label">Open quotations</div><div className="value">{d?.counts.openQuotations ?? 0}</div><div className="sub">waiting for the customer</div></div>
         <div className="stat"><div className="chip c-green"><TrendingUp className="ic" /></div><div className="label">This month</div><div className="value">{inr(d?.month ?? 0)}</div><div className="sub">all branches you can see</div></div>
         <div className="stat"><div className="chip c-amber"><Wallet className="ic" /></div><div className="label">To collect</div><div className="value">{inr(d?.receivable ?? 0)}</div><div className="sub">{d?.unpaidCount ?? 0} unpaid invoices</div></div>
         <div className="stat"><div className="chip c-rose"><AlertTriangle className="ic" /></div><div className="label">Low stock</div><div className="value">{d?.lowStock.length ?? 0}</div><div className="sub">items to reorder</div></div>
