@@ -19,6 +19,7 @@ import { notificationRoutes } from "./modules/notifications/routes.js";
 import { roleRoutes } from "./modules/roles/routes.js";
 import { teamRoutes } from "./modules/team/routes.js";
 import { tenantRoutes } from "./modules/tenants/routes.js";
+import { businessRoutes } from "./modules/business-routes.js";
 
 const UNSAFE = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 // Called by cron with a secret header and no cookies, so CSRF does not apply.
@@ -95,7 +96,7 @@ export function createApp() {
   app.use("/api/v1/auth", authRoutes.router);
   app.use("/api/v1/me", accountRoutes.router);
   app.use("/api/v1/team", teamRoutes.router);
-  app.use("/api/v1", metaRoutes.router, tenantRoutes.router, roleRoutes.router, auditRoutes.router, fileRoutes.router, notificationRoutes.router);
+  app.use("/api/v1", metaRoutes.router, tenantRoutes.router, roleRoutes.router, auditRoutes.router, fileRoutes.router, notificationRoutes.router, businessRoutes.router);
   app.use("/api", (_req, res) => {
     res.status(404).json({ error: { code: "not_found", message: "Unknown API endpoint." } });
   });

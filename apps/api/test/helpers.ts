@@ -22,7 +22,8 @@ export function newMobile(): string {
   return `6${runPrefix}${String(mobileSeq).padStart(6, "0")}`;
 }
 
-let ipSeq = 0;
+// Each test file starts at a random address so "devices" in different files never share an IP.
+let ipSeq = Math.floor(Math.random() * 0xffff00);
 const newIp = () => `10.${(ipSeq >> 16) & 255}.${(ipSeq >> 8) & 255}.${ipSeq++ & 255}`;
 
 export function lastOtp(mobile10: string): string {

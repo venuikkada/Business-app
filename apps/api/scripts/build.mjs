@@ -28,11 +28,14 @@ await build({
   minify: false,
   legalComments: "none",
   // CommonJS packages (express, mysql2) need `require` inside an ES module bundle.
-  banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
+  // pdfkit also needs __dirname to find its font metric files (copied to dist/data below).
+  banner: { js: "import { createRequire as __cr } from 'node:module'; import { fileURLToPath as __fu } from 'node:url'; import { dirname as __dn } from 'node:path'; const require = __cr(import.meta.url); const __filename = __fu(import.meta.url); const __dirname = __dn(__filename);" },
   logLevel: "warning",
 });
 
 await cp(path.resolve(root, "../../db/mysql"), path.join(out, "migrations"), { recursive: true });
+await cp(path.join(root, "assets/fonts"), path.join(out, "fonts"), { recursive: true });
+await cp(path.join(root, "node_modules/pdfkit/js/data"), path.join(out, "data"), { recursive: true });
 const pwa = path.resolve(root, "../pwa/dist");
 if (existsSync(pwa)) await cp(pwa, path.join(out, "public"), { recursive: true });
 else console.warn("warning: apps/pwa/dist not found — build the PWA first (pnpm --filter @biz/pwa build)");

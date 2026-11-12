@@ -98,6 +98,9 @@ importers:
       mysql2:
         specifier: 3.24.6
         version: 3.24.6(@types/node@22.15.21)
+      pdfkit:
+        specifier: 0.15.2
+        version: 0.15.2
       zod:
         specifier: 3.24.1
         version: 3.24.1
@@ -117,6 +120,9 @@ importers:
       '@types/node':
         specifier: 22.15.21
         version: 22.15.21
+      '@types/pdfkit':
+        specifier: 0.13.9
+        version: 0.13.9
       '@types/supertest':
         specifier: 6.0.3
         version: 6.0.3
@@ -141,6 +147,12 @@ importers:
       '@cba/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@fontsource-variable/inter':
+        specifier: 5.2.5
+        version: 5.2.5
+      lucide-react:
+        specifier: 0.511.0
+        version: 0.511.0(react@19.1.10)
       react:
         specifier: 19.1.10
         version: 19.1.10
@@ -723,6 +735,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@fontsource-variable/inter@5.2.5':
+    resolution: {integrity: sha512-TrWffUAFOnT8zroE9YmGybagoOgM/HjRqMQ8k9R0vVgXlnUh/vnpbGPAS/Caz1KIlOPnPGh6fvJbb7DHbFCncA==}
+
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
     engines: {node: '>=18'}
@@ -1261,6 +1276,9 @@ packages:
 
   '@types/pdfkit@0.13.8':
     resolution: {integrity: sha512-lX+wmG9KNisFQXCC/facEw+rljSkMyo6Eh+W4gp/uPZzzmA7TTchKkCp5tMrXDY+lQjqzoxt8rGKRlpxf1c3hw==}
+
+  '@types/pdfkit@0.13.9':
+    resolution: {integrity: sha512-RDG8Yb1zT7I01FfpwK7nMSA433XWpblMqSCtA5vJlSyavWZb303HUYPCel6JTiDDFqwGLvtAnYbH8N/e0Cb89g==}
 
   '@types/pg@8.11.10':
     resolution: {integrity: sha512-LczQUW4dbOQzsH2RQ5qoeJ6qJPdrcM/DcMLoqWQkMLMsq83J5lAX3LXjdkWdpscFy67JSOWDnh7Ny/sPFykmkg==}
@@ -2085,6 +2103,11 @@ packages:
   lru.min@1.1.5:
     resolution: {integrity: sha512-5J9ysMYUpYIg9RF2vJpy9SinEmSviFSe0GyPpCQ4L5QSkLAgeLXlTAOu2ZwWUU5m+0SBl6gUU1R1ZQB3aKypfA==}
     engines: {bun: '>=1.0.0', deno: '>=1.30.0', node: '>=8.0.0'}
+
+  lucide-react@0.511.0:
+    resolution: {integrity: sha512-VK5a2ydJ7xm8GvBeKLS9mu1pVK6ucef9780JVUjw6bAjJL/QXnd4Y0p7SPeOUMC27YhzNCZvm5d/QX0Tp3rc0w==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   lucide-react@1.57.0:
     resolution: {integrity: sha512-bXFZEucYhAzLD62Jse76AbTR6LiSLTn3Tqir2f1n8rZrWAdLodYy7jnRZSPIT89dRLk/IseMOUWG82wJtTyTTw==}
@@ -3131,6 +3154,8 @@ snapshots:
   '@esbuild/win32-x64@0.25.4':
     optional: true
 
+  '@fontsource-variable/inter@5.2.5': {}
+
   '@img/colour@1.1.0':
     optional: true
 
@@ -3551,6 +3576,10 @@ snapshots:
       '@types/node': 22.15.21
 
   '@types/pdfkit@0.13.8':
+    dependencies:
+      '@types/node': 22.15.21
+
+  '@types/pdfkit@0.13.9':
     dependencies:
       '@types/node': 22.15.21
 
@@ -4442,6 +4471,10 @@ snapshots:
       yallist: 3.1.1
 
   lru.min@1.1.5: {}
+
+  lucide-react@0.511.0(react@19.1.10):
+    dependencies:
+      react: 19.1.10
 
   lucide-react@1.57.0(@types/react@19.1.8)(react@19.1.10):
     dependencies:
