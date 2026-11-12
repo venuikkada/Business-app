@@ -13,7 +13,8 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, where this job's Playwright 1.56 cannot install Chromium.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     services:
       postgres:
@@ -65,6 +66,45 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report
           retention-days: 7
+
+  # New MySQL/Express backend + PWA (Step 1). Runs on both engines Hostinger may give you.
+  v2-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        db: ["mariadb:11.4", "mysql:8.4"]
+    services:
+      db:
+        image: ${{ matrix.db }}
+        env:
+          # Throwaway CI credentials only.
+          MARIADB_ROOT_PASSWORD: ci_root_pw
+          MYSQL_ROOT_PASSWORD: ci_root_pw
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pci_root_pw || mariadb-admin ping -h 127.0.0.1 -uroot -pci_root_pw"
+          --health-interval 5s --health-timeout 5s --health-retries 30
+    env:
+      DB_HOST: 127.0.0.1
+      TEST_DB_ADMIN_USER: root
+      TEST_DB_ADMIN_PASSWORD: ci_root_pw
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @biz/api typecheck && pnpm --filter @biz/pwa typecheck
+      - name: API integration tests (real database)
+        run: pnpm --filter @biz/api test
+      - name: PWA tests
+        run: pnpm --filter @biz/pwa test
+      - name: Production build (single folder for Hostinger)
+        run: pnpm --filter @biz/pwa build && pnpm --filter @biz/api build
 
   android-core:
     runs-on: ubuntu-latest

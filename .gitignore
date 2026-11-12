@@ -28,3 +28,4 @@ packages/server/test/.storage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+apps/api/test/.storage/

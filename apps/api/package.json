@@ -1,0 +1,46 @@
+{
+  "name": "@biz/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-business management API (Express + MySQL) for Hostinger Node.js hosting",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "node scripts/build.mjs",
+    "start": "node dist/server.js",
+    "cron": "node dist/cron.js",
+    "migrate": "tsx src/db/migrate-cli.ts",
+    "seed": "tsx scripts/seed-demo.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cba/core": "workspace:*",
+    "bcryptjs": "3.0.2",
+    "cookie-parser": "1.4.7",
+    "express": "5.1.0",
+    "helmet": "8.1.0",
+    "jsonwebtoken": "9.0.2",
+    "multer": "2.5.0",
+    "mysql2": "3.24.6",
+    "pdfkit": "0.15.2",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "1.4.8",
+    "@types/express": "5.0.2",
+    "@types/jsonwebtoken": "9.0.9",
+    "@types/multer": "1.4.12",
+    "@types/node": "22.15.21",
+    "@types/pdfkit": "0.13.9",
+    "@types/supertest": "6.0.3",
+    "esbuild": "0.25.4",
+    "supertest": "7.1.1",
+    "tsx": "4.19.4",
+    "typescript": "5.7.3",
+    "vitest": "3.0.5"
+  }
+}
