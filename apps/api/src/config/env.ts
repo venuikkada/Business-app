@@ -26,6 +26,11 @@ const schema = z
     CRON_SECRET: z.string().min(32),
 
     SMS_PROVIDER: z.enum(["console", "msg91"]).default("console"),
+    /** Test mode on a real server before SMS is set up: OTPs go to the server log only. */
+    ALLOW_CONSOLE_SMS: z.enum(["true", "false"]).default("false"),
+    /** "true" = load the fictional demo data at start (needs DEMO_PASSWORD, 12+ chars). Test servers only. */
+    SEED_DEMO_ON_START: z.enum(["true", "false"]).default("false"),
+    DEMO_PASSWORD: z.string().optional(),
     MSG91_AUTH_KEY: z.string().optional(),
     MSG91_OTP_TEMPLATE_ID: z.string().optional(),
     /** Safety cap on OTP SMS per day for the whole platform (protects your SMS credit from bots). */
@@ -39,11 +44,13 @@ const schema = z
   })
   .superRefine((e, ctx) => {
     if (e.NODE_ENV === "production") {
-      if (e.SMS_PROVIDER === "console")
-        ctx.addIssue({ code: "custom", path: ["SMS_PROVIDER"], message: "console SMS is not allowed in production" });
+      if (e.SMS_PROVIDER === "console" && e.ALLOW_CONSOLE_SMS !== "true")
+        ctx.addIssue({ code: "custom", path: ["SMS_PROVIDER"], message: "console SMS is not allowed in production (set ALLOW_CONSOLE_SMS=true only on a test server)" });
       if (!e.APP_ORIGIN.startsWith("https://"))
         ctx.addIssue({ code: "custom", path: ["APP_ORIGIN"], message: "must be https in production" });
     }
+    if (e.SEED_DEMO_ON_START === "true" && (!e.DEMO_PASSWORD || e.DEMO_PASSWORD.length < 12))
+      ctx.addIssue({ code: "custom", path: ["DEMO_PASSWORD"], message: "DEMO_PASSWORD (12+ characters) is required with SEED_DEMO_ON_START" });
     if (e.SMS_PROVIDER === "msg91" && (!e.MSG91_AUTH_KEY || !e.MSG91_OTP_TEMPLATE_ID))
       ctx.addIssue({ code: "custom", path: ["MSG91_AUTH_KEY"], message: "MSG91_AUTH_KEY and MSG91_OTP_TEMPLATE_ID are required" });
   });
@@ -64,6 +71,8 @@ export function env(): Env {
 }
 
 export const isProd = () => env().NODE_ENV === "production";
+/** True while OTPs are not really sent by SMS (development or a test server). */
+export const smsTestMode = () => env().SMS_PROVIDER === "console";
 export const cookieSecure = () => (env().COOKIE_SECURE ? env().COOKIE_SECURE === "true" : isProd());
 
 /** Tests change process.env between files; this clears the cache. */

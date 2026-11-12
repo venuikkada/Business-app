@@ -2,6 +2,7 @@ import { env } from "./config/env.js";
 import { createApp } from "./app.js";
 import { closePool, db } from "./db/pool.js";
 import { migrate } from "./db/migrate.js";
+import { seedDemo } from "./dev/seed.js";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -23,6 +24,14 @@ async function main() {
     console.log(JSON.stringify({ level: "info", msg: "database reachable", host: e.DB_HOST, db: e.DB_NAME }));
   } catch (err: any) {
     console.error(JSON.stringify({ level: "error", msg: "database NOT reachable", code: err?.code, message: err?.message }));
+  }
+  if (e.SEED_DEMO_ON_START === "true") {
+    await seedDemo((m) => console.log(JSON.stringify({ level: "info", msg: m.trim() }))).catch((err) =>
+      console.error(JSON.stringify({ level: "error", msg: "demo seed failed", message: err?.message })),
+    );
+  }
+  if (e.SMS_PROVIDER === "console" && e.NODE_ENV === "production") {
+    console.warn(JSON.stringify({ level: "warn", msg: "TEST MODE: OTPs are written to this log, not sent by SMS" }));
   }
   const server = createApp().listen(e.PORT, () => {
     console.log(JSON.stringify({ level: "info", msg: "listening", port: e.PORT, env: e.NODE_ENV }));

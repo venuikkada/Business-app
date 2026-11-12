@@ -1,6 +1,6 @@
 import { COMMON_GST_RATES, GST_RATES, INDIAN_STATES } from "@cba/core";
 import { timingSafeEqual } from "node:crypto";
-import { env } from "../../config/env.js";
+import { env, smsTestMode } from "../../config/env.js";
 import { db } from "../../db/pool.js";
 import { ApiRouter } from "../../http/router.js";
 import { AppError } from "../../lib/errors.js";
@@ -17,6 +17,8 @@ r.get("/health", { access: { access: "public" } }, async () => {
 
 /** Lists used by onboarding forms. */
 r.get("/meta", { access: { access: "public" } }, async () => ({
+  /** true = OTPs are not sent by SMS yet (test server) */
+  smsTestMode: smsTestMode(),
   sectors: SECTORS,
   states: INDIAN_STATES,
   gstRates: GST_RATES,

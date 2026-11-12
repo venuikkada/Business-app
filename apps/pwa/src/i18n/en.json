@@ -220,5 +220,6 @@
   "err.own_access": "You cannot change your own access.",
   "err.server_error": "Something went wrong. Please try again.",
   "settings.closeBranch": "Close branch",
-  "settings.reopen": "Reopen"
+  "settings.reopen": "Reopen",
+  "login.testMode": "Test mode: OTPs are not sent by SMS yet. Use the Password tab."
 }

@@ -16,6 +16,7 @@
     "dev": "pnpm --filter @cba/web dev",
     "dev:admin": "pnpm --filter @cba/admin dev",
     "v2:test": "pnpm --filter @biz/api test && pnpm --filter @biz/pwa test",
-    "v2:build": "pnpm --filter @biz/pwa build && pnpm --filter @biz/api build"
+    "v2:build": "pnpm --filter @biz/pwa build && pnpm --filter @biz/api build",
+    "build:hostinger:v2": "pnpm --filter @biz/pwa build && pnpm --filter @biz/api build"
   }
 }

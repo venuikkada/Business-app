@@ -220,5 +220,6 @@
   "err.own_access": "Aap apna khud ka access nahin badal sakte.",
   "err.server_error": "Kuch gadbad hui. Phir try karein.",
   "settings.closeBranch": "Branch band karein",
-  "settings.reopen": "Phir kholein"
+  "settings.reopen": "Phir kholein",
+  "login.testMode": "Test mode: abhi OTP SMS se nahin aata. Password tab use karein."
 }

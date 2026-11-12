@@ -220,5 +220,6 @@
   "err.own_access": "आप अपना खुद का एक्सेस नहीं बदल सकते.",
   "err.server_error": "कुछ गड़बड़ हुई. फिर से कोशिश करें.",
   "settings.closeBranch": "ब्रांच बंद करें",
-  "settings.reopen": "फिर खोलें"
+  "settings.reopen": "फिर खोलें",
+  "login.testMode": "टेस्ट मोड: अभी OTP SMS से नहीं जाता. पासवर्ड टैब इस्तेमाल करें."
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { post } from "../lib/api";
+import { get, post } from "../lib/api";
 import { useSession } from "../lib/session";
 import { useErrorText, useT } from "../i18n";
 import { Banner, Input } from "../components/ui";
@@ -23,6 +23,11 @@ export function Login() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
+  const [testMode, setTestMode] = useState(false);
+
+  useEffect(() => {
+    get("/meta").then((m) => setTestMode(!!m.smsTestMode)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -104,6 +109,7 @@ export function Login() {
             <button className={mode === "password" ? "on" : ""} onClick={() => switchMode("password")} role="tab">{t("login.tabPassword")}</button>
           </div>
         )}
+        {testMode && <Banner kind="warn">{t("login.testMode")}</Banner>}
         <Banner>{error}</Banner>
         <Banner kind="ok">{info}</Banner>
 
