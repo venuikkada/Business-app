@@ -1,3 +1,6 @@
+import { randomBytes } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 
 /**
@@ -59,8 +62,45 @@ export type Env = z.infer<typeof schema>;
 
 let cached: Env | null = null;
 
+const AUTO_KEYS = ["JWT_SECRET", "OTP_SECRET", "DATA_ENCRYPTION_KEY"] as const;
+
+/**
+ * AUTO_SECRETS=true: missing JWT_SECRET / OTP_SECRET / DATA_ENCRYPTION_KEY are created once on
+ * the server and kept in STORAGE_DIR/.app-secrets.json (owner-only permissions), so the keys
+ * never have to pass through anyone's chat or laptop. Variables that ARE set always win.
+ * Back this file up: without DATA_ENCRYPTION_KEY the encrypted backups cannot be opened.
+ */
+export function loadAutoSecrets(): void {
+  if (process.env.AUTO_SECRETS !== "true" || !process.env.STORAGE_DIR) return;
+  if (AUTO_KEYS.every((k) => process.env[k])) return;
+  const dir = path.resolve(process.env.STORAGE_DIR);
+  const file = path.join(dir, ".app-secrets.json");
+  const read = (): Record<string, string> => {
+    try {
+      return JSON.parse(readFileSync(file, "utf8"));
+    } catch {
+      return {};
+    }
+  };
+  let data = read();
+  if (!AUTO_KEYS.every((k) => data[k])) {
+    const fresh: Record<string, string> = { ...data };
+    for (const k of AUTO_KEYS) fresh[k] ??= randomBytes(32).toString("hex");
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    try {
+      // "wx": only one process creates the file; the others read what it wrote.
+      writeFileSync(file, JSON.stringify(fresh), { mode: 0o600, flag: Object.keys(data).length ? "w" : "wx" });
+    } catch (e: any) {
+      if (e?.code !== "EEXIST") throw e;
+    }
+    data = read();
+  }
+  for (const k of AUTO_KEYS) if (!process.env[k] && data[k]) process.env[k] = data[k];
+}
+
 export function env(): Env {
   if (cached) return cached;
+  loadAutoSecrets();
   const parsed = schema.safeParse(process.env);
   if (!parsed.success) {
     const lines = parsed.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`);
