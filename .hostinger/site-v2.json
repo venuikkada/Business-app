@@ -1,0 +1,19 @@
+{
+  "domain": "lawngreen-squid-696317.hostingersite.com",
+  "username": "u294778060",
+  "type": "nodejs",
+  "build": {
+    "source": "git",
+    "repository": "venuikkada/Business-app",
+    "branch": "claude/multi-business-management-app-vovboc",
+    "root_directory": ".",
+    "app_type": "express",
+    "build_script": "build:hostinger:v2",
+    "entry_file": "apps/api/dist/server.js",
+    "package_manager": "pnpm",
+    "node_version": 20
+  },
+  "database": "Hostinger MySQL u294778060_bizappv2 (created by setup-website; credentials only in the site's environment variables)",
+  "cron": "every minute: POST /api/v1/internal/cron with X-Cron-Key",
+  "mode": "test (SMS_PROVIDER=console, ALLOW_CONSOLE_SMS=true, demo data seeded)"
+}
