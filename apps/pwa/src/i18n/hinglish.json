@@ -221,5 +221,11 @@
   "err.server_error": "Kuch gadbad hui. Phir try karein.",
   "settings.closeBranch": "Branch band karein",
   "settings.reopen": "Phir kholein",
-  "login.testMode": "Test mode: abhi OTP SMS se nahin aata. Password tab use karein."
+  "login.testMode": "Test mode: SMS nahin jaata. OTP screen par dikhega. Demo owner: 90000 00001.",
+  "login.newHere": "Naye hain? Free account banayein",
+  "login.signupTitle": "Apna free account banayein",
+  "login.signupSubtitle": "Apna naam aur mobile number daalein. OTP ke baad business set up karenge. 30 din free.",
+  "login.createAccount": "Account banayein",
+  "login.haveAccount": "Account pehle se hai? Sign in karein",
+  "login.testOtp": "Test mode: aapka OTP {otp} hai (apne aap bhar diya)."
 }

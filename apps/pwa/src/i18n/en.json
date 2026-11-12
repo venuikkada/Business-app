@@ -221,5 +221,11 @@
   "err.server_error": "Something went wrong. Please try again.",
   "settings.closeBranch": "Close branch",
   "settings.reopen": "Reopen",
-  "login.testMode": "Test mode: OTPs are not sent by SMS yet. Use the Password tab."
+  "login.testMode": "Test mode: no SMS is sent. The OTP will be shown on screen. Demo owner: 90000 00001.",
+  "login.newHere": "New here? Create a free account",
+  "login.signupTitle": "Create your free account",
+  "login.signupSubtitle": "Enter your name and mobile number. After the OTP you will set up your business. 30 days free.",
+  "login.createAccount": "Create account",
+  "login.haveAccount": "Already have an account? Sign in",
+  "login.testOtp": "Test mode: your OTP is {otp} (filled in for you)."
 }

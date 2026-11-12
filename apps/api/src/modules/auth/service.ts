@@ -1,5 +1,5 @@
 import { normalizeIndianPhone } from "@cba/core";
-import { env } from "../../config/env.js";
+import { env, smsTestMode } from "../../config/env.js";
 import { Db, db, withTx } from "../../db/pool.js";
 import { hmac, otpCode, safeEqual, sha256 } from "../../lib/crypto.js";
 import { addSeconds } from "../../lib/dates.js";
@@ -52,6 +52,7 @@ export async function requestOtp(mobileInput: string, purpose: OtpPurpose, meta:
 
   const d = db();
   let send = true;
+  let testOtp: string | undefined;
   if (purpose === "reset_password") {
     const u = await d.one("SELECT id FROM users WHERE mobile = :mobile AND status = 'active'", { mobile });
     send = !!u; // pretend success for unknown numbers
@@ -68,9 +69,12 @@ export async function requestOtp(mobileInput: string, purpose: OtpPurpose, meta:
       { purpose, mobile, hash: otpHash(mobile, purpose, code), exp: addSeconds(new Date(), OTP_TTL_SEC), ip: meta.ip },
     );
     await sms().sendOtp(mobile, code);
+    // Test server without SMS (SMS_PROVIDER=console): the only way to use the OTP is to show it.
+    // Never happens with a real SMS provider.
+    if (smsTestMode()) testOtp = code;
   }
   await logAuthEvent(d, { event: `otp_request_${purpose}`, identifier: maskMobile(mobile), success: true, meta });
-  return { sent: true, mobile: maskMobile(mobile), expiresIn: OTP_TTL_SEC, resendAfter: OTP_RESEND_SEC };
+  return { sent: true, mobile: maskMobile(mobile), expiresIn: OTP_TTL_SEC, resendAfter: OTP_RESEND_SEC, ...(testOtp ? { testOtp } : {}) };
 }
 
 /**

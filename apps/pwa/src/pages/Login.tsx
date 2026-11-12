@@ -5,7 +5,7 @@ import { useErrorText, useT } from "../i18n";
 import { Banner, Input } from "../components/ui";
 import { LanguagePicker } from "../components/LanguagePicker";
 
-type Mode = "otp" | "password" | "reset";
+type Mode = "otp" | "signup" | "password" | "reset";
 
 export function Login() {
   const t = useT();
@@ -52,7 +52,9 @@ export function Login() {
       const r = await post("/auth/otp/request", { mobile, purpose });
       setSentTo(r.mobile);
       setWait(r.resendAfter);
-      setOtp("");
+      // Test server only (no SMS yet): the server returns the OTP so the app can be tried.
+      setOtp(r.testOtp ?? "");
+      setInfo(r.testOtp ? t("login.testOtp", { otp: r.testOtp }) : "");
     });
 
   const verify = (e: FormEvent) => {
@@ -103,7 +105,7 @@ export function Login() {
           <LanguagePicker compact />
         </div>
 
-        {mode !== "reset" && (
+        {(mode === "otp" || mode === "password") && (
           <div className="tabs" role="tablist">
             <button className={mode === "otp" ? "on" : ""} onClick={() => switchMode("otp")} role="tab">{t("login.tabOtp")}</button>
             <button className={mode === "password" ? "on" : ""} onClick={() => switchMode("password")} role="tab">{t("login.tabPassword")}</button>
@@ -113,23 +115,31 @@ export function Login() {
         <Banner>{error}</Banner>
         <Banner kind="ok">{info}</Banner>
 
-        {mode === "otp" && !sentTo && (
+        {(mode === "otp" || mode === "signup") && !sentTo && (
           <form className="stack" onSubmit={(e) => (e.preventDefault(), sendOtp("login"))}>
-            <h1>{t("login.title")}</h1>
-            <p className="muted">{t("login.subtitle")}</p>
+            <h1>{mode === "signup" ? t("login.signupTitle") : t("login.title")}</h1>
+            <p className="muted">{mode === "signup" ? t("login.signupSubtitle") : t("login.subtitle")}</p>
+            {mode === "signup" && (
+              <Input label={t("login.yourName")} value={name} onChange={(e) => setName(e.target.value)} required maxLength={120} autoComplete="name" />
+            )}
             <Input label={t("login.mobile")} hint={t("login.mobileHint")} inputMode="tel" autoComplete="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} required maxLength={14} placeholder="98765 43210" />
-            <button className="btn primary block" disabled={busy}>{t("login.sendOtp")}</button>
+            <button className="btn primary block" disabled={busy}>{mode === "signup" ? t("login.createAccount") : t("login.sendOtp")}</button>
+            <button type="button" className="btn block" onClick={() => switchMode(mode === "signup" ? "otp" : "signup")}>
+              {mode === "signup" ? t("login.haveAccount") : t("login.newHere")}
+            </button>
           </form>
         )}
 
-        {mode === "otp" && sentTo && (
+        {(mode === "otp" || mode === "signup") && sentTo && (
           <form className="stack" onSubmit={verify}>
             <p className="muted">{t("login.otpSentTo", { mobile: sentTo })}</p>
             <Input label={t("login.otp")} className="otp-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} required autoFocus />
-            <Input label={`${t("login.yourName")} (${t("common.optional")})`} value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
+            {mode === "otp" && (
+              <Input label={`${t("login.yourName")} (${t("common.optional")})`} value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
+            )}
             <button className="btn primary block" disabled={busy || otp.length !== 6}>{t("login.verify")}</button>
             <div className="spread small">
-              <button type="button" className="linkbtn" onClick={() => setSentTo(null)}>{t("login.changeNumber")}</button>
+              <button type="button" className="linkbtn" onClick={() => (setSentTo(null), setInfo(""))}>{t("login.changeNumber")}</button>
               {wait > 0 ? <span className="muted">{t("login.resendIn", { s: wait })}</span> : <button type="button" className="linkbtn" onClick={() => sendOtp("login")}>{t("login.resend")}</button>}
             </div>
           </form>

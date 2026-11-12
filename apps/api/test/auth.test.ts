@@ -81,6 +81,15 @@ describe("OTP login", () => {
     await db().exec("DELETE FROM rate_limits WHERE bucket = 'otp:global:day'");
   });
 
+  it("in SMS test mode the OTP is returned so a test server is usable (never with a real SMS provider)", async () => {
+    const c = await new Client().init();
+    const mobile = newMobile();
+    const r = await c.post("/auth/otp/request", { mobile });
+    expect(r.body.data.testOtp).toBe(lastOtp(mobile));
+    const ok = await c.post("/auth/otp/verify", { mobile, otp: r.body.data.testOtp, name: "Fresh User" });
+    expect(ok.body.data.isNewUser).toBe(true);
+  });
+
   it("rejects invalid mobile numbers", async () => {
     const c = await new Client().init();
     const r = await c.post("/auth/otp/request", { mobile: "12345" });

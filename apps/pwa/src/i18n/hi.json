@@ -221,5 +221,11 @@
   "err.server_error": "कुछ गड़बड़ हुई. फिर से कोशिश करें.",
   "settings.closeBranch": "ब्रांच बंद करें",
   "settings.reopen": "फिर खोलें",
-  "login.testMode": "टेस्ट मोड: अभी OTP SMS से नहीं जाता. पासवर्ड टैब इस्तेमाल करें."
+  "login.testMode": "टेस्ट मोड: SMS नहीं जाता. OTP स्क्रीन पर दिखेगा. डेमो मालिक: 90000 00001.",
+  "login.newHere": "नए हैं? मुफ़्त अकाउंट बनाएँ",
+  "login.signupTitle": "अपना मुफ़्त अकाउंट बनाएँ",
+  "login.signupSubtitle": "अपना नाम और मोबाइल नंबर डालें. OTP के बाद आप अपना बिज़नेस सेट करेंगे. 30 दिन मुफ़्त.",
+  "login.createAccount": "अकाउंट बनाएँ",
+  "login.haveAccount": "पहले से अकाउंट है? साइन इन करें",
+  "login.testOtp": "टेस्ट मोड: आपका OTP {otp} है (अपने आप भर दिया गया)."
 }
