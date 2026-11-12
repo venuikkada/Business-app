@@ -16,7 +16,8 @@ const schema = z
     APP_ORIGIN: z.string().url().default("http://localhost:5173"),
     TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(1),
 
-    DB_HOST: z.string().default("127.0.0.1"),
+    // "localhost" can resolve to IPv6 (::1) in Node, which Hostinger MySQL users may not be allowed from.
+    DB_HOST: z.string().default("127.0.0.1").transform((h) => (h === "localhost" ? "127.0.0.1" : h)),
     DB_PORT: z.coerce.number().int().default(3306),
     DB_USER: z.string().min(1),
     DB_PASSWORD: z.string().default(""),

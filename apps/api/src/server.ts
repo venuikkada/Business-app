@@ -13,6 +13,7 @@ async function main() {
     if (!existsSync(dir)) throw new Error(`MIGRATE_ON_START: migrations folder not found at ${dir}`);
     const applied = await migrate({
       host: e.DB_HOST, port: e.DB_PORT, database: e.DB_NAME, dir,
+      // MIGRATION_DB_* are only needed when the app's own user lacks CREATE/ALTER rights.
       user: process.env.MIGRATION_DB_USER ?? e.DB_USER,
       password: process.env.MIGRATION_DB_PASSWORD ?? e.DB_PASSWORD,
       log: (m) => console.log(JSON.stringify({ level: "info", msg: `migrate: ${m}` })),
