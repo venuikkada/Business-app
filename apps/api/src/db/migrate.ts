@@ -33,6 +33,9 @@ export async function migrate(o: MigrateOptions): Promise<string[]> {
   });
   try {
     await conn.query("SET time_zone = '+00:00'");
+    // Only one process migrates at a time (Hostinger may start several app processes).
+    const [lock] = await conn.query("SELECT GET_LOCK('bizapp_migrate', 120) AS got");
+    if (!(lock as any[])[0]?.got) throw new Error("Could not get the migration lock (another migration is running).");
     await conn.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
       name VARCHAR(100) NOT NULL PRIMARY KEY,
       checksum CHAR(64) NOT NULL,
@@ -66,6 +69,7 @@ export async function migrate(o: MigrateOptions): Promise<string[]> {
       }
       applied.push(f);
     }
+    await conn.query("SELECT RELEASE_LOCK('bizapp_migrate')");
     return applied;
   } finally {
     await conn.end();

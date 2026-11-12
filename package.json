@@ -14,6 +14,8 @@
     "db:migrate": "pnpm --filter @cba/server db:migrate",
     "db:seed": "pnpm --filter @cba/server db:seed",
     "dev": "pnpm --filter @cba/web dev",
-    "dev:admin": "pnpm --filter @cba/admin dev"
+    "dev:admin": "pnpm --filter @cba/admin dev",
+    "v2:test": "pnpm --filter @biz/api test && pnpm --filter @biz/pwa test",
+    "v2:build": "pnpm --filter @biz/pwa build && pnpm --filter @biz/api build"
   }
 }

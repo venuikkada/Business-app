@@ -69,6 +69,18 @@ describe("OTP login", () => {
     expect(last).toBe(429);
   });
 
+  it("has a platform-wide daily OTP cap (protects SMS credit from bots)", async () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const start = nowSec - (nowSec % 86_400);
+    await db().exec(
+      "INSERT INTO rate_limits (bucket, window_start, hits) VALUES ('otp:global:day', FROM_UNIXTIME(:s), 3000) ON DUPLICATE KEY UPDATE hits = 3000",
+      { s: start },
+    );
+    const r = await (await new Client().init()).post("/auth/otp/request", { mobile: newMobile() });
+    expect(r.status).toBe(429);
+    await db().exec("DELETE FROM rate_limits WHERE bucket = 'otp:global:day'");
+  });
+
   it("rejects invalid mobile numbers", async () => {
     const c = await new Client().init();
     const r = await c.post("/auth/otp/request", { mobile: "12345" });

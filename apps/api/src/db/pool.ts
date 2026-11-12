@@ -39,8 +39,9 @@ export async function closePool() {
 export type Params = Record<string, unknown>;
 type Conn = Pool | PoolConnection;
 
-function clean(params: Params = {}): Params {
-  const out: Params = {};
+// mysql2 escapes every value (named placeholders); undefined becomes NULL.
+function clean(params: Params = {}): Record<string, any> {
+  const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(params)) out[k] = v === undefined ? null : v;
   return out;
 }

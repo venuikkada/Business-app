@@ -3,6 +3,7 @@ import express, { type NextFunction, type Request, type Response } from "express
 import helmet from "helmet";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { env } from "./config/env.js";
 import { COOKIE_CSRF } from "./http/auth-middleware.js";
 import { errorHandler } from "./http/errors.js";
@@ -49,6 +50,8 @@ export function createApp() {
           "connect-src": ["'self'"],
           "frame-ancestors": ["'none'"],
           "form-action": ["'self'"],
+          // Only force HTTPS for sub-resources in production (local dev runs on http://localhost).
+          "upgrade-insecure-requests": e.NODE_ENV === "production" ? [] : null,
         },
       },
       crossOriginEmbedderPolicy: false,
@@ -98,8 +101,9 @@ export function createApp() {
   });
 
   // The built PWA (apps/pwa/dist) is served from the same Node app.
-  const publicDir = e.PUBLIC_DIR ? path.resolve(e.PUBLIC_DIR) : null;
-  if (publicDir && existsSync(publicDir)) {
+  // Bundled build serves dist/public; in development Vite serves the app instead.
+  const publicDir = e.PUBLIC_DIR ? path.resolve(e.PUBLIC_DIR) : fileURLToPath(new URL("./public", import.meta.url));
+  if (existsSync(path.join(publicDir, "index.html"))) {
     app.use(
       express.static(publicDir, {
         index: false,

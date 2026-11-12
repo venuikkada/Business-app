@@ -40,7 +40,7 @@ export async function logAuthEvent(
 
 /**
  * Sends a 6-digit OTP. Limits: 1 per 30 s and 5 per hour and 10 per day per mobile,
- * 20 per hour per IP address. The answer never reveals whether an account exists.
+ * 20 per hour per IP address, and a platform-wide daily cap (OTP_GLOBAL_DAILY_LIMIT). The answer never reveals whether an account exists.
  */
 export async function requestOtp(mobileInput: string, purpose: OtpPurpose, meta: RequestMeta) {
   const mobile = normalizeMobile(mobileInput);
@@ -48,6 +48,7 @@ export async function requestOtp(mobileInput: string, purpose: OtpPurpose, meta:
   await limit(`otp:cool:${purpose}:${mobile}`, 1, OTP_RESEND_SEC, `Please wait ${OTP_RESEND_SEC} seconds before asking for a new OTP.`);
   await limit(`otp:h:${mobile}`, 5, 3600, "Too many OTPs for this number. Try again in an hour.");
   await limit(`otp:d:${mobile}`, 10, 86_400, "Too many OTPs for this number today.");
+  await limit("otp:global:day", env().OTP_GLOBAL_DAILY_LIMIT, 86_400, "OTP service is busy. Please sign in with password or try later.");
 
   const d = db();
   let send = true;
@@ -180,6 +181,7 @@ export async function loginWithPassword(identifier: string, password: string, me
   }
   await d.exec("UPDATE users SET failed_logins = 0, locked_until = NULL, last_login_at = CURRENT_TIMESTAMP(3) WHERE id = :id", { id: user.id });
   return withTx(async (conn) => {
+    await acceptInvitations(new Db(conn), Number(user.id), meta);
     const s = await createSession(conn, Number(user.id), meta);
     await logAuthEvent(new Db(conn), { userId: user.id, event: "login_password", identifier: masked, success: true, meta });
     return { ...s, userId: Number(user.id) };

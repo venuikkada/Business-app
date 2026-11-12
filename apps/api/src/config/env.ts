@@ -28,8 +28,12 @@ const schema = z
     SMS_PROVIDER: z.enum(["console", "msg91"]).default("console"),
     MSG91_AUTH_KEY: z.string().optional(),
     MSG91_OTP_TEMPLATE_ID: z.string().optional(),
+    /** Safety cap on OTP SMS per day for the whole platform (protects your SMS credit from bots). */
+    OTP_GLOBAL_DAILY_LIMIT: z.coerce.number().int().min(10).default(3000),
 
     STORAGE_DIR: z.string().default("./storage"),
+    /** "true" = apply new db/mysql migrations when the server starts (handy on Hostinger without SSH). */
+    MIGRATE_ON_START: z.enum(["true", "false"]).default("false"),
     PUBLIC_DIR: z.string().optional(),
     COOKIE_SECURE: z.enum(["true", "false"]).optional(),
   })

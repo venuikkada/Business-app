@@ -232,3 +232,20 @@ describe("document numbering", () => {
     expect((await o.patch(`/document-series/${s.id}`, { prefix: "TOOLONG1" })).status).toBe(400);
   });
 });
+
+describe("invitations", () => {
+  it("are accepted on first sign-in by password too", async () => {
+    const { Client, newMobile } = await import("./helpers.js");
+    const { hashPassword } = await import("../src/modules/auth/password.js");
+    const o = await ownerWithBusiness();
+    const mobile = newMobile();
+    const roles = (await o.get("/roles")).body.data;
+    await o.post("/team", { mobile, name: "Pw Staff", roleId: roles.find((r: any) => r.key === "cashier").id });
+    await db().exec("UPDATE users SET password_hash = :h WHERE mobile = :m", { h: await hashPassword("Staff2026pass"), m: `+91${mobile}` });
+    const c = await new Client().init();
+    expect((await c.post("/auth/login", { identifier: mobile, password: "Staff2026pass" })).status).toBe(200);
+    const me = (await c.get("/me")).body.data;
+    expect(me.businesses.map((b: any) => b.id)).toEqual([o.tenantId]);
+    expect(me.currentTenantId).toBe(o.tenantId);
+  });
+});

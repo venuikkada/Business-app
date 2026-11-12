@@ -1,9 +1,23 @@
 import { env } from "./config/env.js";
 import { createApp } from "./app.js";
 import { closePool, db } from "./db/pool.js";
+import { migrate } from "./db/migrate.js";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 async function main() {
   const e = env(); // fails fast with a clear message if a variable is missing
+  if (e.MIGRATE_ON_START === "true") {
+    const dir = fileURLToPath(new URL("./migrations", import.meta.url));
+    if (!existsSync(dir)) throw new Error(`MIGRATE_ON_START: migrations folder not found at ${dir}`);
+    const applied = await migrate({
+      host: e.DB_HOST, port: e.DB_PORT, database: e.DB_NAME, dir,
+      user: process.env.MIGRATION_DB_USER ?? e.DB_USER,
+      password: process.env.MIGRATION_DB_PASSWORD ?? e.DB_PASSWORD,
+      log: (m) => console.log(JSON.stringify({ level: "info", msg: `migrate: ${m}` })),
+    });
+    console.log(JSON.stringify({ level: "info", msg: "migrations checked", applied }));
+  }
   try {
     await db().one("SELECT 1");
     console.log(JSON.stringify({ level: "info", msg: "database reachable", host: e.DB_HOST, db: e.DB_NAME }));

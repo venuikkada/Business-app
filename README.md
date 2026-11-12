@@ -1,5 +1,10 @@
 # CRAZY BUSINESS APP
 
+> **New (Nov 2026): version 2 for Hostinger + MySQL is being built in steps.**
+> Start at [docs/v2/README.md](docs/v2/README.md). Step 1 (sign-in, businesses, roles, team, audit log) is done:
+> `apps/api` (Express + MySQL), `apps/pwa` (installable app), `db/mysql` (schema).
+> The PostgreSQL/Supabase version described below is the **old** version and is no longer the target.
+
 **One App. Complete Business Control.**
 
 A multi-tenant business-management SaaS for Indian small and medium businesses —
