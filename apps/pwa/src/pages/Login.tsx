@@ -4,6 +4,7 @@ import { useSession } from "../lib/session";
 import { useErrorText, useT } from "../i18n";
 import { Banner, Input } from "../components/ui";
 import { LanguagePicker } from "../components/LanguagePicker";
+import { BadgeIndianRupee, Boxes, FileText, ReceiptText, ShieldCheck, Smartphone, Users, Wallet } from "lucide-react";
 
 type Mode = "otp" | "signup" | "password" | "reset";
 
@@ -93,6 +94,28 @@ export function Login() {
 
   return (
     <div className="auth">
+      <section className="hero">
+        <span className="tag"><BadgeIndianRupee className="ic" /> Made for Indian businesses · GST ready</span>
+        <h2>Run your whole business from one app.</h2>
+        <p className="lead">Billing, quotations, stock, customers, staff and salaries — for a small shop or a company with many branches.</p>
+        <ul>
+          <li><ReceiptText className="ic" /> GST invoices in seconds</li>
+          <li><FileText className="ic" /> Quotations → invoices</li>
+          <li><Boxes className="ic" /> Stock in, out & low-stock alerts</li>
+          <li><Users className="ic" /> Customers & dues</li>
+          <li><Wallet className="ic" /> Salaries & payslips</li>
+          <li><ShieldCheck className="ic" /> Staff roles & audit log</li>
+          <li><Smartphone className="ic" /> Works on phone & computer</li>
+          <li><BadgeIndianRupee className="ic" /> English · हिन्दी · తెలుగు</li>
+        </ul>
+        <div className="mock">
+          <div><small>Today's sales</small><b>₹48,250</b></div>
+          <div><small>To collect</small><b>₹1,12,400</b></div>
+          <div><small>Invoices this month</small><b>326</b></div>
+          <div><small>Low stock items</small><b>7</b></div>
+        </div>
+      </section>
+      <div className="pane">
       <div className="card stack">
         <div className="spread">
           <div className="brandmark">
@@ -169,6 +192,7 @@ export function Login() {
             <button type="button" className="linkbtn small" onClick={() => switchMode("password")}>{t("common.back")}</button>
           </form>
         )}
+      </div>
       </div>
     </div>
   );

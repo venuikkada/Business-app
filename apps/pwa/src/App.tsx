@@ -14,6 +14,10 @@ import { Audit } from "./pages/Audit";
 import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
 import { Notifications } from "./pages/Notifications";
+import { DocEditor, DocView, SalesList } from "./pages/Sales";
+import { Items } from "./pages/Items";
+import { Parties } from "./pages/Parties";
+import { Employees, Payroll } from "./pages/People";
 
 function Guard({ perm, children }: { perm: string; children: ReactElement }) {
   const { can } = useSession();
@@ -53,6 +57,16 @@ export function App() {
           <Route path="/switch" element={<PickBusiness />} />
           <Route element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="invoices" element={<Guard perm="sales.view"><SalesList docType="invoice" /></Guard>} />
+            <Route path="quotations" element={<Guard perm="sales.view"><SalesList docType="quotation" /></Guard>} />
+            <Route path="invoices/new" element={<Guard perm="sales.create"><DocEditor key="inv" docType="invoice" /></Guard>} />
+            <Route path="quotations/new" element={<Guard perm="sales.create"><DocEditor key="qt" docType="quotation" /></Guard>} />
+            <Route path="sales/:id" element={<Guard perm="sales.view"><DocView /></Guard>} />
+            <Route path="customers" element={<Guard perm="parties.view"><Parties /></Guard>} />
+            <Route path="items" element={<Guard perm="items.view"><Items key="items" mode="items" /></Guard>} />
+            <Route path="stock" element={<Guard perm="stock.view"><Items key="stock" mode="stock" /></Guard>} />
+            <Route path="employees" element={<Guard perm="employees.view"><Employees /></Guard>} />
+            <Route path="payroll" element={<Guard perm="payroll.view"><Payroll /></Guard>} />
             <Route path="team" element={<Guard perm="team.view"><Team /></Guard>} />
             <Route path="roles" element={<Guard perm="roles.view"><Roles /></Guard>} />
             <Route path="audit" element={<Guard perm="audit.view"><Audit /></Guard>} />

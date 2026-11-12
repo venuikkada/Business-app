@@ -63,3 +63,45 @@ export function fieldErrors(e: any): Record<string, string> {
   if (e?.code === "validation_failed" && Array.isArray(e.details)) for (const d of e.details) out[d.path] ??= d.message;
   return out;
 }
+
+export function PageHead({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
+  return (
+    <div className="page-head">
+      <div>
+        <h1>{title}</h1>
+        {sub && <div className="muted small">{sub}</div>}
+      </div>
+      <div className="row">{children}</div>
+    </div>
+  );
+}
+
+export function Empty({ icon, title, text, children }: { icon: ReactNode; title: string; text?: string; children?: ReactNode }) {
+  return (
+    <div className="empty">
+      {icon}
+      <strong>{title}</strong>
+      {text && <div className="small" style={{ marginBottom: 12 }}>{text}</div>}
+      {children}
+    </div>
+  );
+}
+
+const STATUS: Record<string, [string, string]> = {
+  paid: ["Paid", "ok"], partially_paid: ["Part paid", "warn"], issued: ["Unpaid", "bad"], cancelled: ["Cancelled", "gray"],
+  sent: ["Open", ""], converted: ["Invoiced", "ok"], accepted: ["Accepted", "ok"], rejected: ["Rejected", "gray"],
+};
+export function StatusBadge({ status }: { status: string }) {
+  const [label, cls] = STATUS[status] ?? [status, "gray"];
+  return <span className={`badge ${cls}`}>{label}</span>;
+}
+
+/** Number input that keeps what the user typed and reports a number (or 0). */
+export function Num({ label, value, onChange, step = "0.01", ...rest }: { label: string; value: number | string; onChange: (v: number) => void; step?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <input type="number" inputMode="decimal" min="0" step={step} value={value === 0 ? "" : value} placeholder="0" onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))} {...rest} />
+    </label>
+  );
+}

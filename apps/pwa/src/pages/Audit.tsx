@@ -18,8 +18,8 @@ interface Entry {
   createdAt: string;
 }
 
-const ENTITIES = ["tenant", "branch", "role", "membership", "document_series", "audit_log"];
-const ACTIONS = ["create", "update", "delete", "export"];
+const ENTITIES = ["invoice", "quotation", "payment", "item", "stock_movement", "party", "employee", "payroll_run", "tenant", "branch", "role", "membership", "document_series"];
+const ACTIONS = ["create", "update", "delete", "cancel", "export"];
 const show = (v: unknown) => (v === null || v === undefined || v === "" ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v));
 
 export function Audit() {

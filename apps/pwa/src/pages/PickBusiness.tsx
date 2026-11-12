@@ -11,8 +11,8 @@ export function PickBusiness() {
   const { me, openBusiness, signOut } = useSession();
   const [error, setError] = useState("");
   return (
-    <div className="auth">
-      <div className="card stack">
+    <div className="auth" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="pane"><div className="card stack">
         <h1>{t("pick.title")}</h1>
         <Banner>{error}</Banner>
         <ul className="list">
@@ -32,7 +32,7 @@ export function PickBusiness() {
         </ul>
         <Link className="btn block" to="/onboarding">+ {t("nav.addBusiness")}</Link>
         <button className="linkbtn small" onClick={signOut}>{t("nav.logout")}</button>
-      </div>
+      </div></div>
     </div>
   );
 }

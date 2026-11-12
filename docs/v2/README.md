@@ -5,7 +5,7 @@
 | Step | Scope | State |
 | --- | --- | --- |
 | 1 | Core engine, auth, business setup, roles, audit log | ✅ Built & tested — please review |
-| 2 | Retail: billing, stock, quotations, staff, payslip, reports | ⏸ Waiting for approval (database tables already exist) |
+| 2 | Billing, stock, quotations, staff, payslip, reports | 🚧 Built: items, stock in/out/count, customers & dues, GST invoices, quotations → invoice, payments, PDF invoice & payslip, employees, monthly payroll, dashboard, new design. **Not yet:** purchases, expenses, reports page, credit notes, attendance, offline billing, barcode camera, translations of the new screens |
 | 3 | Restaurant | ⏸ |
 | 4 | Hotel | ⏸ |
 | 5 | Corporate / services | ⏸ |

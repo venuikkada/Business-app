@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./i18n";
 import { SessionProvider } from "./lib/session";
 import { App } from "./App";
+import "@fontsource-variable/inter";
 import "./styles.css";
 
 createRoot(document.getElementById("root")!).render(
